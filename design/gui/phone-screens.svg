@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1640 780" font-family="Helvetica, Arial, sans-serif">
+  <title>Chirp Mapper — phone wireframes: SCR-02 Map, SCR-03 Drive view, SCR-04 Statistics, SCR-08 Profile editor</title>
+  <defs>
+    <style>
+      .frame { fill: #ffffff; stroke: #333; stroke-width: 2; }
+      .dark { fill: #121417; stroke: #333; stroke-width: 2; }
+      .panel { fill: #f3f4f6; stroke: #9aa1aa; stroke-width: 1; }
+      .chip { fill: #ffffff; stroke: #9aa1aa; stroke-width: 1; }
+      .t { font-size: 13px; fill: #1b1f23; }
+      .ts { font-size: 11px; fill: #4b5563; }
+      .tw { font-size: 13px; fill: #e6e8eb; }
+      .tws { font-size: 11px; fill: #9aa1aa; }
+      .cap { font-size: 15px; font-weight: bold; fill: #1b1f23; }
+      .btn { fill: #0e7c86; }
+      .stop { fill: #d9480f; }
+      .ok { fill: #1e8e3e; } .warn { fill: #b26a00; } .off { fill: #6b7280; }
+      .road { stroke: #c7ccd1; stroke-width: 6; fill: none; }
+    </style>
+  </defs>
+
+  <!-- ============ Frame 1: SCR-02 Map ============ -->
+  <text x="20" y="30" class="cap">SCR-02 Map (phone, 360×640)</text>
+  <rect x="20" y="45" width="360" height="640" rx="18" class="frame"/>
+  <!-- map background -->
+  <rect x="22" y="47" width="356" height="560" fill="#eef1f4"/>
+  <path d="M22 200 L378 260" class="road"/><path d="M120 47 L200 607" class="road"/><path d="M22 420 L378 380" class="road"/>
+  <!-- chips -->
+  <rect x="30" y="55" width="86" height="24" rx="12" class="chip"/><circle cx="42" cy="67" r="4" class="ok"/><text x="50" y="71" class="ts">TTS eu1 · up</text>
+  <rect x="122" y="55" width="96" height="24" rx="12" class="chip"/><circle cx="134" cy="67" r="4" class="ok"/><text x="142" y="71" class="ts">GNSS 4 m · 11 sat</text>
+  <rect x="224" y="55" width="116" height="24" rx="12" class="chip"/><circle cx="236" cy="67" r="4" class="off"/><text x="244" y="71" class="ts">12 s · −97 dBm · 3 GW</text>
+  <!-- gateway marker + lines + points -->
+  <g stroke-width="2" opacity="0.8">
+    <line x1="300" y1="150" x2="90" y2="330" stroke="#ff7f00"/>
+    <line x1="300" y1="150" x2="130" y2="360" stroke="#ffff00"/>
+    <line x1="300" y1="150" x2="170" y2="395" stroke="#00ff00"/>
+  </g>
+  <rect x="290" y="140" width="20" height="20" rx="3" fill="#0e7c86" stroke="#1b1f23"/><text x="314" y="155" class="ts">gw-eui-…5c00</text>
+  <g stroke="#1b1f23" stroke-width="1">
+    <circle cx="60" cy="300" r="6" fill="#ff0000" opacity="0.7"/>
+    <circle cx="90" cy="330" r="6" fill="#ff7f00" opacity="0.7"/>
+    <circle cx="130" cy="360" r="6" fill="#ffff00" opacity="0.7"/>
+    <circle cx="170" cy="395" r="6" fill="#00ff00" opacity="0.7"/>
+    <circle cx="205" cy="430" r="6" fill="#00ffff" opacity="0.7"/>
+    <circle cx="240" cy="455" r="6" fill="none" stroke="#0000ff" stroke-width="3"/>
+  </g>
+  <!-- own position arrow -->
+  <polygon points="262,470 254,490 262,485 270,490" fill="#0e7c86" stroke="#ffffff"/>
+  <circle cx="262" cy="480" r="16" fill="#0e7c86" opacity="0.15"/>
+  <!-- right controls -->
+  <rect x="326" y="120" width="44" height="44" rx="22" class="chip"/><text x="337" y="147" class="ts">⌖</text>
+  <rect x="326" y="172" width="44" height="44" rx="22" class="chip"/><text x="337" y="199" class="ts">≣</text>
+  <!-- legend -->
+  <rect x="30" y="510" width="120" height="70" rx="6" class="chip" opacity="0.9"/>
+  <g font-size="9" fill="#1b1f23">
+    <rect x="36" y="516" width="10" height="8" fill="#ff0000"/><text x="50" y="523">&gt; −100 dBm</text>
+    <rect x="36" y="527" width="10" height="8" fill="#ff7f00"/><text x="50" y="534">&gt; −105</text>
+    <rect x="36" y="538" width="10" height="8" fill="#ffff00"/><text x="50" y="545">&gt; −110</text>
+    <rect x="36" y="549" width="10" height="8" fill="#00ff00"/><text x="50" y="556">&gt; −115</text>
+    <rect x="36" y="560" width="10" height="8" fill="#00ffff"/><text x="50" y="567">&gt; −120</text>
+    <rect x="36" y="571" width="10" height="8" fill="#0000ff"/><text x="50" y="578">&gt; −140</text>
+  </g>
+  <!-- attribution -->
+  <rect x="22" y="592" width="356" height="15" fill="#ffffff" opacity="0.85"/><text x="230" y="603" class="ts" font-size="9">© OpenStreetMap contributors</text>
+  <!-- upload chip -->
+  <rect x="200" y="560" width="70" height="22" rx="11" class="chip"/><circle cx="211" cy="571" r="4" class="ok"/><text x="219" y="575" class="ts">queue 0</text>
+  <!-- primary control -->
+  <circle cx="200" cy="600" r="36" class="stop"/><rect x="188" y="588" width="24" height="24" fill="#ffffff"/>
+  <text x="200" y="650" class="ts" text-anchor="middle">Stop (running 00:42)</text>
+  <!-- bottom nav -->
+  <rect x="22" y="627" width="356" height="56" fill="#ffffff" stroke="#c7ccd1"/>
+  <g class="ts" text-anchor="middle">
+    <text x="66" y="668" fill="#0e7c86">Map</text><text x="155" y="668">Drive</text><text x="245" y="668">Sessions</text><text x="334" y="668">More</text>
+  </g>
+
+  <!-- ============ Frame 2: SCR-03 Drive view ============ -->
+  <text x="420" y="30" class="cap">SCR-03 Drive view (night)</text>
+  <rect x="420" y="45" width="360" height="640" rx="18" class="dark"/>
+  <rect x="432" y="60" width="336" height="28" rx="6" fill="#1c1f24"/><circle cx="446" cy="74" r="5" class="ok"/><text x="456" y="78" class="tw">TTS eu1 · connected</text>
+  <rect x="432" y="94" width="336" height="28" rx="6" fill="#1c1f24"/><circle cx="446" cy="108" r="5" class="ok"/><text x="456" y="112" class="tw">GNSS 4 m · 11 sat · 1 s</text>
+  <text x="440" y="160" class="tws">BEST RSSI</text><text x="440" y="230" fill="#ff7f00" font-size="72" font-weight="bold">−97</text><text x="600" y="230" class="tws" font-size="18">dBm</text>
+  <text x="440" y="270" class="tws">BEST SNR</text><text x="440" y="330" fill="#e6e8eb" font-size="56" font-weight="bold">7.5</text><text x="560" y="330" class="tws" font-size="18">dB</text>
+  <g class="tws">
+    <text x="440" y="380">GATEWAYS</text><text x="440" y="430" fill="#e6e8eb" font-size="44" font-weight="bold">3</text>
+    <text x="560" y="380">AGE</text><text x="560" y="430" fill="#e6e8eb" font-size="44" font-weight="bold">12 s</text>
+    <text x="680" y="380">PACKETS</text><text x="680" y="430" fill="#e6e8eb" font-size="44" font-weight="bold">128</text>
+  </g>
+  <rect x="432" y="456" width="336" height="28" rx="6" fill="#1c1f24"/><text x="444" y="475" class="tw">Session 00:42 · 6.3 km · upload queue 0</text>
+  <rect x="440" y="520" width="320" height="96" rx="48" class="stop"/><text x="600" y="577" fill="#ffffff" font-size="28" font-weight="bold" text-anchor="middle">■  STOP</text>
+  <rect x="422" y="627" width="356" height="56" fill="#1c1f24"/>
+  <g class="tws" text-anchor="middle"><text x="466" y="668">Map</text><text x="555" y="668" fill="#5fd3d9">Drive</text><text x="645" y="668">Sessions</text><text x="734" y="668">More</text></g>
+
+  <!-- ============ Frame 3: SCR-04 Statistics ============ -->
+  <text x="820" y="30" class="cap">SCR-04 Statistics</text>
+  <rect x="820" y="45" width="360" height="640" rx="18" class="frame"/>
+  <text x="836" y="78" class="t" font-weight="bold" font-size="18">Statistics · session 14:02</text>
+  <rect x="832" y="92" width="336" height="112" rx="10" class="panel"/>
+  <g class="t"><text x="844" y="114" font-weight="bold">Session</text>
+    <text x="844" y="136">Packets</text><text x="1000" y="136">128 (3 without position)</text>
+    <text x="844" y="156">Duration · distance</text><text x="1000" y="156">00:42 · 6.3 km</text>
+    <text x="844" y="176">Unique gateways</text><text x="1000" y="176">7</text>
+    <text x="844" y="196">Best / worst level</text><text x="1000" y="196">−89 / −131 dBm</text></g>
+  <rect x="832" y="214" width="336" height="150" rx="10" class="panel"/>
+  <text x="844" y="236" class="t" font-weight="bold">Signal (levels)</text>
+  <g class="ts">
+    <text x="844" y="258">&gt; −100</text><rect x="900" y="248" width="60" height="12" fill="#ff0000"/><text x="966" y="258">12</text>
+    <text x="844" y="276">&gt; −105</text><rect x="900" y="266" width="110" height="12" fill="#ff7f00"/><text x="1016" y="276">22</text>
+    <text x="844" y="294">&gt; −110</text><rect x="900" y="284" width="170" height="12" fill="#ffff00" stroke="#9aa1aa"/><text x="1076" y="294">34</text>
+    <text x="844" y="312">&gt; −115</text><rect x="900" y="302" width="140" height="12" fill="#00ff00"/><text x="1046" y="312">28</text>
+    <text x="844" y="330">&gt; −120</text><rect x="900" y="320" width="90" height="12" fill="#00ffff" stroke="#9aa1aa"/><text x="996" y="330">18</text>
+    <text x="844" y="348">&gt; −140</text><rect x="900" y="338" width="50" height="12" fill="#0000ff"/><text x="956" y="348">11</text>
+  </g>
+  <rect x="832" y="374" width="336" height="190" rx="10" class="panel"/>
+  <text x="844" y="396" class="t" font-weight="bold">Gateways</text>
+  <g class="ts">
+    <text x="844" y="416" font-weight="bold">Gateway</text><text x="1030" y="416" font-weight="bold">Rx</text><text x="1070" y="416" font-weight="bold">Best</text><text x="1120" y="416" font-weight="bold">Max km</text>
+    <text x="844" y="438">Heatherpark (eui-…5c00)</text><text x="1030" y="438">61</text><text x="1070" y="438">−89</text><text x="1120" y="438">4.1</text>
+    <text x="844" y="458">eui-b827ebfffefdb27f</text><text x="1030" y="458">44</text><text x="1070" y="458">−96</text><text x="1120" y="458">2.7</text>
+    <text x="844" y="478">eui-dca632fffe005838</text><text x="1030" y="478">23</text><text x="1070" y="478">−104</text><text x="1120" y="478">6.0</text>
+    <text x="844" y="498">via Packet Broker · nl-xyz</text><text x="1030" y="498">9</text><text x="1070" y="498">−118</text><text x="1120" y="498">9.8</text>
+    <text x="844" y="530">… 3 more</text>
+  </g>
+  <rect x="832" y="574" width="336" height="44" rx="10" class="panel"/>
+  <text x="844" y="600" class="t">Upload  ✔ 121 · pending 4 · rejected 0</text>
+  <rect x="822" y="627" width="356" height="56" fill="#ffffff" stroke="#c7ccd1"/>
+  <g class="ts" text-anchor="middle"><text x="866" y="668">Map</text><text x="955" y="668">Drive</text><text x="1045" y="668">Sessions</text><text x="1134" y="668" fill="#0e7c86">More</text></g>
+
+  <!-- ============ Frame 4: SCR-08 Profile editor ============ -->
+  <text x="1220" y="30" class="cap">SCR-08 Profile editor (TTS v3)</text>
+  <rect x="1220" y="45" width="360" height="640" rx="18" class="frame"/>
+  <text x="1236" y="78" class="t" font-weight="bold" font-size="18">← New profile</text>
+  <g class="ts"><text x="1236" y="104">Network server type</text></g>
+  <rect x="1236" y="110" width="160" height="32" rx="16" fill="#0e7c86"/><text x="1316" y="131" fill="#fff" class="t" text-anchor="middle">The Things Stack v3</text>
+  <rect x="1402" y="110" width="160" height="32" rx="16" class="chip"/><text x="1482" y="131" class="t" text-anchor="middle">ChirpStack v4</text>
+  <g class="ts">
+    <text x="1236" y="164">Name</text><rect x="1236" y="170" width="328" height="36" rx="6" class="chip"/><text x="1246" y="193" class="t">My mapper on TTN</text>
+    <text x="1236" y="226">Host</text><rect x="1236" y="232" width="328" height="36" rx="6" class="chip"/><text x="1246" y="255" class="t">eu1.cloud.thethings.network ▾</text>
+    <text x="1236" y="288">Application id</text><rect x="1236" y="294" width="160" height="36" rx="6" class="chip"/><text x="1246" y="317" class="t">my-app</text>
+    <text x="1404" y="288">Tenant id</text><rect x="1404" y="294" width="160" height="36" rx="6" class="chip"/><text x="1414" y="317" class="t">ttn</text>
+    <text x="1236" y="350">API key</text><rect x="1236" y="356" width="328" height="36" rx="6" class="chip"/><text x="1246" y="379" class="t">NNSXS.•••••••••••••••••••••</text><text x="1540" y="379" class="t">👁</text>
+    <text x="1236" y="412">Devices</text><rect x="1236" y="418" width="328" height="36" rx="6" class="chip"/><text x="1246" y="441" class="t">mapper-01 ×   mapper-02 ×   + add</text>
+    <text x="1236" y="474">TLS (port 8883)</text><rect x="1520" y="462" width="44" height="22" rx="11" fill="#0e7c86"/><circle cx="1553" cy="473" r="9" fill="#fff"/>
+    <text x="1236" y="500">Contribute to ttnmapper.org</text><rect x="1520" y="488" width="44" height="22" rx="11" fill="#0e7c86"/><circle cx="1553" cy="499" r="9" fill="#fff"/>
+    <text x="1236" y="526">Topic (derived)</text><text x="1236" y="542" class="ts" fill="#6b7280">v3/my-app@ttn/devices/mapper-01/up  ✎</text>
+  </g>
+  <rect x="1236" y="560" width="328" height="44" rx="10" class="panel"/>
+  <g class="ts"><text x="1246" y="578">Test: resolve ✔ · connect ✔ · TLS ✔ · auth ✔ · subscribe ✔</text><text x="1246" y="596">waiting for a message… 23 s</text></g>
+  <rect x="1236" y="616" width="156" height="44" rx="22" class="chip"/><text x="1314" y="643" class="t" text-anchor="middle">Test connection</text>
+  <rect x="1408" y="616" width="156" height="44" rx="22" class="btn"/><text x="1486" y="643" fill="#fff" class="t" text-anchor="middle">Save</text>
+
+  <text x="20" y="740" class="ts">Wireframes are structural: proportions and copy are indicative. Level colours are the ttnmapper.org legend; state colours per GUI design §2.1.</text>
+</svg>

@@ -1,0 +1,45 @@
+# --- OS / editor -------------------------------------------------------------
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+*.iml
+.vscode/
+.claude/settings.local.json
+
+# --- Gradle / Kotlin / Android (implementation phase) ------------------------
+.gradle/
+.kotlin/
+build/
+**/build/
+out/
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.hprof
+
+# --- Secrets: never commit signing keys or credentials -----------------------
+*.jks
+*.keystore
+*.p12
+*.pem
+*.env
+secrets.properties
+signing.properties
+
+# --- Packaging outputs -------------------------------------------------------
+*.deb
+*.rpm
+*.AppImage
+dist/
+
+# --- Scratch -----------------------------------------------------------------
+*.bak
+*.tmp
+scratch/

@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1320 860" font-family="Helvetica, Arial, sans-serif">
+  <title>Chirp Mapper — SCR-20 desktop / tablet main window (1280×800)</title>
+  <defs>
+    <style>
+      .frame { fill: #ffffff; stroke: #333; stroke-width: 2; }
+      .panel { fill: #f3f4f6; stroke: #9aa1aa; stroke-width: 1; }
+      .chip { fill: #ffffff; stroke: #9aa1aa; stroke-width: 1; }
+      .t { font-size: 13px; fill: #1b1f23; }
+      .ts { font-size: 11px; fill: #4b5563; }
+      .cap { font-size: 15px; font-weight: bold; fill: #1b1f23; }
+      .ok { fill: #1e8e3e; } .warn { fill: #b26a00; } .off { fill: #6b7280; }
+      .road { stroke: #c7ccd1; stroke-width: 8; fill: none; }
+    </style>
+  </defs>
+  <text x="20" y="30" class="cap">SCR-20 Desktop / tablet main (1280×800): rail · map · side panel · status bar</text>
+  <rect x="20" y="45" width="1280" height="800" class="frame"/>
+
+  <!-- rail -->
+  <rect x="20" y="45" width="72" height="800" fill="#f3f4f6"/>
+  <g class="ts" text-anchor="middle">
+    <rect x="30" y="70" width="52" height="52" rx="12" fill="#0e7c86" opacity="0.15"/><text x="56" y="102" fill="#0e7c86">Map</text>
+    <text x="56" y="170">Sessions</text><text x="56" y="230">Profiles</text><text x="56" y="290">Stats</text><text x="56" y="350">Diag</text><text x="56" y="800">Settings</text>
+  </g>
+
+  <!-- map -->
+  <rect x="92" y="45" width="848" height="770" fill="#eef1f4"/>
+  <path d="M92 300 L940 380" class="road"/><path d="M400 45 L520 815" class="road"/><path d="M92 620 L940 560" class="road"/><path d="M700 45 L640 815" class="road"/>
+  <!-- chips -->
+  <g>
+    <rect x="104" y="58" width="132" height="26" rx="13" class="chip"/><circle cx="118" cy="71" r="4" class="ok"/><text x="127" y="75" class="ts">TTS eu1 · connected</text>
+    <rect x="244" y="58" width="132" height="26" rx="13" class="chip"/><circle cx="258" cy="71" r="4" class="ok"/><text x="267" y="75" class="ts">GNSS 3 m · 12 sat · 1 s</text>
+    <rect x="384" y="58" width="150" height="26" rx="13" class="chip"/><circle cx="398" cy="71" r="4" class="off"/><text x="407" y="75" class="ts">8 s · −93 dBm · 4 GW</text>
+    <rect x="542" y="58" width="90" height="26" rx="13" class="chip"/><circle cx="556" cy="71" r="4" class="ok"/><text x="565" y="75" class="ts">queue 0</text>
+  </g>
+  <!-- coverage overlay hint -->
+  <g opacity="0.25" fill="#ff7f00"><circle cx="300" cy="500" r="40"/><circle cx="360" cy="470" r="40"/><circle cx="420" cy="450" r="40"/><circle cx="800" cy="200" r="60"/></g>
+  <!-- gateways -->
+  <g fill="#0e7c86" stroke="#1b1f23">
+    <rect x="760" y="150" width="22" height="22" rx="3"/><rect x="230" y="680" width="22" height="22" rx="3"/><rect x="880" y="700" width="22" height="22" rx="3"/>
+  </g>
+  <g class="ts"><text x="788" y="166">Heatherpark</text><text x="258" y="696">eui-b827…b27f</text></g>
+  <!-- track -->
+  <g stroke="#1b1f23" stroke-width="1">
+    <circle cx="200" cy="330" r="6" fill="#00ffff" opacity="0.7"/><circle cx="240" cy="345" r="6" fill="#00ff00" opacity="0.7"/><circle cx="280" cy="360" r="6" fill="#00ff00" opacity="0.7"/>
+    <circle cx="320" cy="372" r="6" fill="#ffff00" opacity="0.7"/><circle cx="360" cy="380" r="6" fill="#ffff00" opacity="0.7"/><circle cx="400" cy="386" r="6" fill="#ff7f00" opacity="0.7"/>
+    <circle cx="440" cy="390" r="6" fill="#ff7f00" opacity="0.7"/><circle cx="480" cy="392" r="6" fill="#ff0000" opacity="0.7"/><circle cx="520" cy="392" r="6" fill="#ff0000" opacity="0.7"/>
+    <circle cx="560" cy="388" r="6" fill="#ff7f00" opacity="0.7"/><circle cx="600" cy="380" r="6" fill="none" stroke="#0000ff" stroke-width="3"/>
+  </g>
+  <g stroke-width="2" opacity="0.7"><line x1="771" y1="161" x2="520" y2="392" stroke="#ff0000"/><line x1="771" y1="161" x2="560" y2="388" stroke="#ff7f00"/><line x1="241" y1="691" x2="560" y2="388" stroke="#00ffff"/></g>
+  <polygon points="630,372 622,392 630,387 638,392" fill="#0e7c86" stroke="#fff"/>
+  <!-- map controls -->
+  <g class="chip"><rect x="884" y="100" width="44" height="44" rx="22"/><rect x="884" y="152" width="44" height="44" rx="22"/><rect x="884" y="204" width="44" height="44" rx="22"/><rect x="884" y="256" width="44" height="44" rx="22"/></g>
+  <g class="t" text-anchor="middle"><text x="906" y="128">+</text><text x="906" y="180">−</text><text x="906" y="232">⌖</text><text x="906" y="284">≣</text></g>
+  <!-- legend & attribution -->
+  <rect x="104" y="740" width="200" height="30" rx="6" class="chip" opacity="0.9"/>
+  <g><rect x="112" y="750" width="12" height="10" fill="#ff0000"/><rect x="126" y="750" width="12" height="10" fill="#ff7f00"/><rect x="140" y="750" width="12" height="10" fill="#ffff00"/><rect x="154" y="750" width="12" height="10" fill="#00ff00"/><rect x="168" y="750" width="12" height="10" fill="#00ffff"/><rect x="182" y="750" width="12" height="10" fill="#0000ff"/><text x="200" y="759" class="ts">−100 … −140 dBm</text></g>
+  <text x="935" y="806" class="ts" text-anchor="end">© OpenStreetMap contributors · coverage © ttnmapper.org</text>
+
+  <!-- side panel -->
+  <rect x="940" y="45" width="360" height="770" fill="#ffffff" stroke="#c7ccd1"/>
+  <g class="t">
+    <rect x="952" y="58" width="100" height="30" rx="15" fill="#0e7c86"/><text x="1002" y="78" fill="#fff" text-anchor="middle">Live</text>
+    <rect x="1058" y="58" width="100" height="30" rx="15" class="chip"/><text x="1108" y="78" text-anchor="middle">Statistics</text>
+    <rect x="1164" y="58" width="100" height="30" rx="15" class="chip"/><text x="1214" y="78" text-anchor="middle">Gateways</text>
+  </g>
+  <rect x="952" y="100" width="336" height="110" rx="10" class="panel"/>
+  <g class="t">
+    <text x="964" y="122" font-weight="bold">Last packet · 14:44:12 UTC · 8 s ago</text>
+    <text x="964" y="144">mapper-01 · FCnt 2 731 · 867.5 MHz · SF7 BW125</text>
+    <g class="ts">
+      <text x="964" y="166">Heatherpark</text><text x="1140" y="166">−93 dBm · 8.2 dB</text><rect x="1256" y="157" width="22" height="12" fill="#ff7f00"/>
+      <text x="964" y="184">eui-b827…b27f</text><text x="1140" y="184">−104 dBm · 3.1 dB</text><rect x="1256" y="175" width="22" height="12" fill="#ffff00" stroke="#9aa1aa"/>
+      <text x="964" y="202">nl-xyz via Packet Broker</text><text x="1140" y="202">−117 dBm · −4.0 dB</text><rect x="1256" y="193" width="22" height="12" fill="#00ffff" stroke="#9aa1aa"/>
+    </g>
+  </g>
+  <rect x="952" y="222" width="336" height="150" rx="10" class="panel"/>
+  <g class="t">
+    <text x="964" y="244" font-weight="bold">Session · 00:42 · 6.3 km</text>
+    <text x="964" y="268">Packets</text><text x="1150" y="268">128 (3 without position)</text>
+    <text x="964" y="290">Unique gateways</text><text x="1150" y="290">7</text>
+    <text x="964" y="312">Best / worst level</text><text x="1150" y="312">−89 / −131 dBm</text>
+    <text x="964" y="334">Upload</text><text x="1150" y="334">✔ 121 · pending 4 · rejected 0</text>
+    <text x="964" y="356">Experiment</text><text x="1150" y="356">off</text>
+  </g>
+  <rect x="952" y="384" width="336" height="96" rx="10" class="panel"/>
+  <g class="t">
+    <text x="964" y="406" font-weight="bold">Position</text>
+    <text x="964" y="428">gpsd · 52.3727 N 4.8973 E · 3 m · 12 sat</text>
+    <text x="964" y="450">alt 2 m · 48 km/h · 213°</text>
+    <text x="964" y="472">fix age 1 s · freshness window 10 s</text>
+  </g>
+  <rect x="952" y="700" width="336" height="64" rx="32" fill="#d9480f"/><text x="1120" y="740" fill="#fff" font-size="22" font-weight="bold" text-anchor="middle">■  Stop mapping</text>
+  <text x="1120" y="790" class="ts" text-anchor="middle">Space: start/stop · F: follow · L: layers</text>
+
+  <!-- status bar -->
+  <rect x="20" y="815" width="1280" height="30" fill="#f3f4f6" stroke="#c7ccd1"/>
+  <g class="ts"><text x="100" y="834">Profile: My mapper on TTN (TTS v3, TLS)</text><text x="520" y="834">DB 214 MB · tile cache 180/1000 MB</text><text x="1000" y="834">Chirp Mapper 0.3.0 · GPL-3.0</text></g>
+</svg>

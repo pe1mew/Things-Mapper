@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1300 700" font-family="Helvetica, Arial, sans-serif">
+  <title>Chirp Mapper — Android Auto: SCR-40 MapWithContentTemplate (POI category) and SCR-41 GridTemplate fallback (IoT category)</title>
+  <defs>
+    <style>
+      .frame { fill: #0b0d10; stroke: #333; stroke-width: 2; }
+      .card { fill: #1c1f24; stroke: #3a4048; stroke-width: 1; }
+      .tw { font-size: 14px; fill: #e6e8eb; }
+      .tws { font-size: 12px; fill: #9aa1aa; }
+      .cap { font-size: 15px; font-weight: bold; fill: #1b1f23; }
+      .ok { fill: #5bd37a; } .warn { fill: #ffc24d; }
+      .road { stroke: #3a4048; stroke-width: 8; fill: none; }
+    </style>
+  </defs>
+
+  <!-- ===== SCR-40 map with content ===== -->
+  <text x="20" y="30" class="cap">SCR-40 Android Auto · MapWithContentTemplate (app-drawn map, host-drawn pane and action strip)</text>
+  <rect x="20" y="45" width="800" height="440" class="frame"/>
+  <!-- app-drawn map surface -->
+  <path d="M20 220 L820 300" class="road"/><path d="M300 45 L360 485" class="road"/><path d="M20 420 L820 380" class="road"/><path d="M600 45 L560 485" class="road"/>
+  <g stroke="#e6e8eb" stroke-width="1">
+    <circle cx="380" cy="330" r="8" fill="#00ffff" opacity="0.75"/><circle cx="430" cy="335" r="8" fill="#00ff00" opacity="0.75"/><circle cx="480" cy="338" r="8" fill="#ffff00" opacity="0.75"/>
+    <circle cx="530" cy="338" r="8" fill="#ff7f00" opacity="0.75"/><circle cx="580" cy="334" r="8" fill="#ff0000" opacity="0.75"/><circle cx="630" cy="326" r="8" fill="#ff7f00" opacity="0.75"/>
+  </g>
+  <rect x="700" y="120" width="24" height="24" rx="3" fill="#5fd3d9" stroke="#e6e8eb"/>
+  <g stroke-width="2" opacity="0.8"><line x1="712" y1="132" x2="580" y2="334" stroke="#ff0000"/><line x1="712" y1="132" x2="630" y2="326" stroke="#ff7f00"/></g>
+  <polygon points="670,320 660,345 670,339 680,345" fill="#5fd3d9" stroke="#fff"/>
+  <text x="812" y="478" class="tws" text-anchor="end" font-size="10">© OpenStreetMap contributors</text>
+  <!-- host-drawn content pane (left) -->
+  <rect x="36" y="61" width="300" height="330" rx="12" class="card"/>
+  <g class="tw">
+    <text x="52" y="90" font-weight="bold" font-size="16">Chirp Mapper</text>
+    <circle cx="60" cy="122" r="7" class="ok"/><text x="76" y="127">Link · TTS eu1 · connected</text>
+    <circle cx="60" cy="160" r="7" class="ok"/><text x="76" y="165">GNSS · 4 m · 1 s</text>
+    <rect x="52" y="188" width="16" height="16" fill="#ff7f00" stroke="#e6e8eb"/><text x="76" y="203">Last packet · 12 s · −97 dBm · 3 GW</text>
+    <circle cx="60" cy="236" r="7" fill="#9aa1aa"/><text x="76" y="241">Session · 128 packets · 00:42</text>
+    <circle cx="60" cy="274" r="7" class="ok"/><text x="76" y="279">Upload · queue 0</text>
+  </g>
+  <line x1="52" y1="300" x2="320" y2="300" stroke="#3a4048"/>
+  <text x="52" y="330" class="tws">Rows are host-drawn; tapping a row shows details in a host list.</text>
+  <text x="52" y="350" class="tws">No text entry anywhere in the car UI.</text>
+  <!-- action strip (bottom right, host) -->
+  <rect x="560" y="410" width="120" height="56" rx="28" fill="#d9480f"/><text x="620" y="445" fill="#fff" font-size="18" font-weight="bold" text-anchor="middle">■ Stop</text>
+  <rect x="690" y="410" width="120" height="56" rx="28" class="card"/><text x="750" y="445" class="tw" font-size="16" text-anchor="middle">Profiles</text>
+  <!-- host chrome -->
+  <rect x="20" y="45" width="800" height="2" fill="#3a4048"/>
+
+  <!-- ===== SCR-41 grid fallback ===== -->
+  <text x="860" y="30" class="cap">SCR-41 fallback · GridTemplate (IoT category)</text>
+  <rect x="860" y="45" width="420" height="440" class="frame"/>
+  <text x="880" y="80" class="tw" font-weight="bold" font-size="16">Chirp Mapper · mapping</text>
+  <g>
+    <rect x="880" y="96" width="120" height="110" rx="12" class="card"/><text x="892" y="116" class="tws">RSSI</text><text x="892" y="170" fill="#ff7f00" font-size="34" font-weight="bold">−97</text><text x="892" y="196" class="tws">dBm</text>
+    <rect x="1010" y="96" width="120" height="110" rx="12" class="card"/><text x="1022" y="116" class="tws">SNR</text><text x="1022" y="170" fill="#e6e8eb" font-size="34" font-weight="bold">7.5</text><text x="1022" y="196" class="tws">dB</text>
+    <rect x="1140" y="96" width="120" height="110" rx="12" class="card"/><text x="1152" y="116" class="tws">GATEWAYS</text><text x="1152" y="170" fill="#e6e8eb" font-size="34" font-weight="bold">3</text>
+    <rect x="880" y="216" width="120" height="110" rx="12" class="card"/><text x="892" y="236" class="tws">AGE</text><text x="892" y="290" fill="#e6e8eb" font-size="34" font-weight="bold">12 s</text>
+    <rect x="1010" y="216" width="120" height="110" rx="12" class="card"/><text x="1022" y="236" class="tws">PACKETS</text><text x="1022" y="290" fill="#e6e8eb" font-size="34" font-weight="bold">128</text>
+    <rect x="1140" y="216" width="120" height="110" rx="12" class="card"/><text x="1152" y="236" class="tws">LINK · GNSS</text><circle cx="1170" cy="272" r="10" class="ok"/><circle cx="1200" cy="272" r="10" class="ok"/><text x="1152" y="310" class="tws">connected · 4 m</text>
+  </g>
+  <rect x="880" y="346" width="380" height="50" rx="10" class="card"/><text x="892" y="366" class="tws">Recent</text><text x="892" y="386" class="tw">−97 dBm · 3 GW · 12 s ago   ·   −104 dBm · 2 GW · 27 s ago</text>
+  <rect x="1130" y="414" width="130" height="56" rx="28" fill="#d9480f"/><text x="1195" y="449" fill="#fff" font-size="18" font-weight="bold" text-anchor="middle">■ Stop</text>
+
+  <text x="20" y="530" class="cap" font-size="13" fill="#4b5563">Both screens are driven by the same view model as the phone's drive view (SCR-03). Night colours follow the host. Starting or stopping in the car starts or stops the phone's foreground service.</text>
+  <text x="20" y="555" class="cap" font-size="13" fill="#4b5563">SCR-40 requires the POI category and the MAP_TEMPLATES permission (Car App API level 7); SCR-41 ships if the POI submission is refused (REQ-F-121).</text>
+</svg>

@@ -1,0 +1,3 @@
+[submodule "ttnmapper-android-v3"]
+	path = ttnmapper-android-v3
+	url = https://github.com/ttnmapper/ttnmapper-android-v3.git

@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1300 740" font-family="Helvetica, Arial, sans-serif">
+  <title>Chirp Mapper — Raspberry Pi kiosk: SCR-30 landscape 800×480 and SCR-31 portrait 720×1280 (scaled)</title>
+  <defs>
+    <style>
+      .frame { fill: #121417; stroke: #333; stroke-width: 2; }
+      .tile { fill: #1c1f24; stroke: #3a4048; stroke-width: 1; }
+      .tw { font-size: 14px; fill: #e6e8eb; }
+      .tws { font-size: 12px; fill: #9aa1aa; }
+      .cap { font-size: 15px; font-weight: bold; fill: #1b1f23; }
+      .ok { fill: #5bd37a; } .warn { fill: #ffc24d; }
+      .road { stroke: #3a4048; stroke-width: 6; fill: none; }
+    </style>
+  </defs>
+
+  <!-- ===== SCR-30 landscape 800x480 ===== -->
+  <text x="20" y="30" class="cap">SCR-30 Kiosk landscape 800×480 (night theme)</text>
+  <rect x="20" y="45" width="800" height="480" class="frame"/>
+  <!-- status strip -->
+  <rect x="20" y="45" width="800" height="24" fill="#1c1f24"/>
+  <g class="tws"><text x="30" y="62">TTS eu1 · My mapper</text><text x="330" y="62">upload queue 0</text><text x="620" y="62">14:44 · GNSS time</text><text x="796" y="62">⚙</text></g>
+  <!-- map -->
+  <rect x="20" y="69" width="500" height="456" fill="#0b0d10"/>
+  <path d="M20 200 L520 260" class="road"/><path d="M150 69 L230 525" class="road"/><path d="M20 420 L520 380" class="road"/>
+  <g stroke="#e6e8eb" stroke-width="1">
+    <circle cx="80" cy="300" r="7" fill="#ff0000" opacity="0.75"/><circle cx="120" cy="330" r="7" fill="#ff7f00" opacity="0.75"/><circle cx="165" cy="358" r="7" fill="#ffff00" opacity="0.75"/>
+    <circle cx="210" cy="385" r="7" fill="#00ff00" opacity="0.75"/><circle cx="255" cy="405" r="7" fill="#00ffff" opacity="0.75"/><circle cx="300" cy="420" r="7" fill="none" stroke="#5c5cff" stroke-width="3"/>
+  </g>
+  <rect x="420" y="140" width="22" height="22" rx="3" fill="#5fd3d9" stroke="#e6e8eb"/>
+  <g stroke-width="2" opacity="0.8"><line x1="431" y1="151" x2="120" y2="330" stroke="#ff7f00"/><line x1="431" y1="151" x2="210" y2="385" stroke="#00ff00"/></g>
+  <polygon points="330,440 322,460 330,455 338,460" fill="#5fd3d9" stroke="#ffffff"/>
+  <text x="514" y="518" class="tws" text-anchor="end" font-size="10">© OpenStreetMap contributors</text>
+  <!-- right column -->
+  <rect x="520" y="69" width="300" height="456" fill="#121417"/>
+  <rect x="530" y="78" width="140" height="96" rx="10" class="tile"/><text x="540" y="98" class="tws">BEST RSSI</text><text x="540" y="156" fill="#ff7f00" font-size="44" font-weight="bold">−97</text><text x="628" y="156" class="tws">dBm</text>
+  <rect x="680" y="78" width="130" height="96" rx="10" class="tile"/><text x="690" y="98" class="tws">SNR</text><text x="690" y="156" fill="#e6e8eb" font-size="44" font-weight="bold">7.5</text><text x="770" y="156" class="tws">dB</text>
+  <rect x="530" y="182" width="140" height="96" rx="10" class="tile"/><text x="540" y="202" class="tws">GATEWAYS</text><text x="540" y="260" fill="#e6e8eb" font-size="44" font-weight="bold">3</text>
+  <rect x="680" y="182" width="130" height="96" rx="10" class="tile"/><text x="690" y="202" class="tws">AGE</text><text x="690" y="260" fill="#e6e8eb" font-size="44" font-weight="bold">12 s</text>
+  <rect x="530" y="286" width="280" height="40" rx="8" class="tile"/><circle cx="548" cy="306" r="7" class="ok"/><text x="562" y="311" class="tw">Link connected · 128 packets</text>
+  <rect x="530" y="332" width="280" height="40" rx="8" class="tile"/><circle cx="548" cy="352" r="7" class="ok"/><text x="562" y="357" class="tw">GNSS 4 m · 11 sat · 1 s</text>
+  <rect x="530" y="378" width="280" height="40" rx="8" class="tile"/><text x="542" y="403" class="tw">Session 00:42 · 6.3 km</text>
+  <rect x="530" y="430" width="280" height="80" rx="40" fill="#d9480f"/><text x="670" y="480" fill="#fff" font-size="30" font-weight="bold" text-anchor="middle">■  STOP</text>
+
+  <!-- ===== SCR-31 portrait 720x1280 scaled 0.5 ===== -->
+  <text x="880" y="30" class="cap">SCR-31 Kiosk portrait 720×1280 (shown at 50 %)</text>
+  <rect x="880" y="45" width="360" height="640" class="frame"/>
+  <rect x="880" y="45" width="360" height="18" fill="#1c1f24"/><g class="tws" font-size="9"><text x="886" y="58">TTS eu1</text><text x="1060" y="58">queue 0</text><text x="1180" y="58">14:44 ⚙</text></g>
+  <rect x="888" y="70" width="170" height="70" rx="8" class="tile"/><text x="896" y="86" class="tws" font-size="9">BEST RSSI</text><text x="896" y="128" fill="#ff7f00" font-size="34" font-weight="bold">−97</text><text x="964" y="128" class="tws" font-size="9">dBm</text>
+  <rect x="1064" y="70" width="168" height="70" rx="8" class="tile"/><text x="1072" y="86" class="tws" font-size="9">SNR</text><text x="1072" y="128" fill="#e6e8eb" font-size="34" font-weight="bold">7.5</text><text x="1130" y="128" class="tws" font-size="9">dB</text>
+  <rect x="888" y="146" width="170" height="70" rx="8" class="tile"/><text x="896" y="162" class="tws" font-size="9">GATEWAYS</text><text x="896" y="204" fill="#e6e8eb" font-size="34" font-weight="bold">3</text>
+  <rect x="1064" y="146" width="168" height="70" rx="8" class="tile"/><text x="1072" y="162" class="tws" font-size="9">AGE</text><text x="1072" y="204" fill="#e6e8eb" font-size="34" font-weight="bold">12 s</text>
+  <rect x="880" y="224" width="360" height="330" fill="#0b0d10"/>
+  <path d="M880 330 L1240 380" class="road"/><path d="M980 224 L1040 554" class="road"/>
+  <g stroke="#e6e8eb" stroke-width="1">
+    <circle cx="930" cy="420" r="6" fill="#ff7f00" opacity="0.75"/><circle cx="970" cy="440" r="6" fill="#ffff00" opacity="0.75"/><circle cx="1010" cy="458" r="6" fill="#00ff00" opacity="0.75"/><circle cx="1050" cy="470" r="6" fill="#00ffff" opacity="0.75"/>
+  </g>
+  <rect x="1150" y="270" width="18" height="18" rx="3" fill="#5fd3d9" stroke="#e6e8eb"/>
+  <g stroke-width="2" opacity="0.8"><line x1="1159" y1="279" x2="970" y2="440" stroke="#ffff00"/><line x1="1159" y1="279" x2="1050" y2="470" stroke="#00ffff"/></g>
+  <polygon points="1080,486 1074,500 1080,497 1086,500" fill="#5fd3d9" stroke="#fff"/>
+  <text x="1236" y="548" class="tws" text-anchor="end" font-size="8">© OpenStreetMap contributors</text>
+  <rect x="888" y="562" width="344" height="26" rx="6" class="tile"/><circle cx="902" cy="575" r="5" class="ok"/><text x="912" y="579" class="tw" font-size="11">Link connected · 128 packets · session 00:42</text>
+  <rect x="888" y="592" width="344" height="26" rx="6" class="tile"/><circle cx="902" cy="605" r="5" class="ok"/><text x="912" y="609" class="tw" font-size="11">GNSS 4 m · 11 sat · 1 s</text>
+  <rect x="888" y="626" width="344" height="50" rx="25" fill="#d9480f"/><text x="1060" y="658" fill="#fff" font-size="20" font-weight="bold" text-anchor="middle">■  STOP</text>
+
+  <text x="20" y="560" class="cap" font-size="13" fill="#4b5563">All kiosk targets ≥ 64 px. The gear opens settings as a full-screen sheet with an in-app on-screen keyboard. Day theme uses the light tokens with the same layout.</text>
+</svg>
