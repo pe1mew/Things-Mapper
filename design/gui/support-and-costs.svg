@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1640 800" font-family="Helvetica, Arial, sans-serif">
+  <title>Things Mapper — SCR-14 Free start screen, SCR-15 cost page, SCR-16 yearly thank-you card, SCR-17 support</title>
+  <defs>
+    <style>
+      .frame { fill: #ffffff; stroke: #333; stroke-width: 2; }
+      .panel { fill: #f3f4f6; stroke: #9aa1aa; stroke-width: 1; }
+      .chip { fill: #ffffff; stroke: #9aa1aa; stroke-width: 1; }
+      .t { font-size: 13px; fill: #1b1f23; }
+      .tb { font-size: 13px; fill: #1b1f23; font-weight: bold; }
+      .ts { font-size: 11px; fill: #4b5563; }
+      .th { font-size: 20px; fill: #1b1f23; font-weight: bold; }
+      .tl { font-size: 12px; fill: #6b7280; font-weight: bold; }
+      .cap { font-size: 15px; font-weight: bold; fill: #1b1f23; }
+      .note { font-size: 12px; fill: #b3261e; }
+      .btn { fill: #0e7c86; }
+      .scrim { fill: #1b1f23; opacity: 0.45; }
+      .road { stroke: #c7ccd1; stroke-width: 6; fill: none; }
+    </style>
+  </defs>
+
+  <!-- ===== SCR-14 Free start screen ===== -->
+  <text x="20" y="30" class="cap">SCR-14 Free start screen (every app start)</text>
+  <rect x="20" y="45" width="360" height="640" rx="18" class="frame"/>
+  <circle cx="200" cy="130" r="40" fill="#0e7c86" opacity="0.15"/>
+  <text x="200" y="138" class="th" text-anchor="middle" fill="#0e7c86">TM</text>
+  <text x="200" y="205" class="th" text-anchor="middle">Things Mapper — Free</text>
+  <text x="200" y="230" class="t" text-anchor="middle">All mapping functions, free of charge.</text>
+  <rect x="40" y="255" width="320" height="170" rx="12" class="panel"/>
+  <text x="56" y="282" class="tb">The Paid edition — €6 once</text>
+  <text x="56" y="310" class="t">✓  no sponsor banners</text>
+  <text x="56" y="334" class="t">✓  no start screen</text>
+  <text x="56" y="358" class="t">✓  Android Auto in your car</text>
+  <text x="56" y="390" class="ts">Same app otherwise. Your data can be imported.</text>
+  <text x="56" y="408" class="ts">Price shown in your currency where known.</text>
+  <rect x="40" y="450" width="320" height="52" rx="26" class="btn"/>
+  <text x="200" y="482" class="tb" text-anchor="middle" fill="#ffffff">Buy the Paid edition</text>
+  <rect x="40" y="514" width="320" height="52" rx="26" class="chip"/>
+  <text x="200" y="546" class="tb" text-anchor="middle">Continue with Free</text>
+  <text x="200" y="600" class="ts" text-anchor="middle" fill="#0e7c86">What does Things Mapper cost to keep going? ›</text>
+  <text x="30" y="712" class="note">Both buttons work at once — no countdown.</text>
+  <text x="30" y="728" class="note">Not shown on resume, from the notification or while mapping.</text>
+
+  <!-- ===== SCR-15 Cost page ===== -->
+  <text x="420" y="30" class="cap">SCR-15 What Things Mapper costs</text>
+  <rect x="420" y="45" width="360" height="640" rx="18" class="frame"/>
+  <text x="436" y="80" class="th">← What it costs</text>
+  <text x="436" y="104" class="ts">Figures of 15 Jan 2027 · in euro</text>
+  <rect x="432" y="116" width="336" height="150" rx="10" class="panel"/>
+  <text x="444" y="138" class="tb">This year: €352</text>
+  <text x="444" y="160" class="t">Apple Developer Program</text><text x="756" y="160" class="t" text-anchor="end">€99</text>
+  <text x="444" y="180" class="t">Test phones (renewal share)</text><text x="756" y="180" class="t" text-anchor="end">€155</text>
+  <text x="444" y="200" class="t">Mac for iOS (yearly share)</text><text x="756" y="200" class="t" text-anchor="end">€88</text>
+  <text x="444" y="220" class="t">Pi, car bench, node (wear)</text><text x="756" y="220" class="t" text-anchor="end">€10</text>
+  <text x="444" y="250" class="ts">Hosting and CI: €0 (GitHub)</text>
+  <rect x="432" y="276" width="336" height="124" rx="10" class="panel"/>
+  <text x="444" y="298" class="tb">Covered so far: 55 %</text>
+  <rect x="444" y="310" width="312" height="16" rx="8" fill="#e5e7eb"/>
+  <rect x="444" y="310" width="100" height="16" rx="8" fill="#0e7c86"/>
+  <rect x="544" y="310" width="28" height="16" fill="#5fd3d9"/>
+  <rect x="572" y="310" width="44" height="16" fill="#b26a00"/>
+  <text x="444" y="346" class="ts">■ Paid sales €112  ■ supporters €32  ■ sponsors €50</text>
+  <text x="444" y="368" class="t">Investments still to recover: €610</text>
+  <text x="444" y="388" class="ts">(Mac and iPhone for iOS development)</text>
+  <rect x="432" y="410" width="336" height="60" rx="10" class="panel"/>
+  <text x="444" y="434" class="t">Development time is volunteered</text>
+  <text x="444" y="454" class="t">and not counted.</text>
+  <rect x="432" y="486" width="336" height="48" rx="24" class="btn"/>
+  <text x="600" y="516" class="tb" text-anchor="middle" fill="#ffffff">Support Things Mapper</text>
+  <rect x="432" y="544" width="336" height="48" rx="24" class="chip"/>
+  <text x="600" y="574" class="tb" text-anchor="middle">Become a sponsor</text>
+  <text x="600" y="616" class="ts" text-anchor="middle" fill="#0e7c86">All figures and how they are calculated ›</text>
+  <text x="430" y="712" class="note">Same figures in every build, from signed</text>
+  <text x="430" y="728" class="note">funding data — nothing about you is sent.</text>
+
+  <!-- ===== SCR-16 Yearly thank-you card ===== -->
+  <text x="820" y="30" class="cap">SCR-16 Thank-you card (≤ once a year)</text>
+  <rect x="820" y="45" width="360" height="640" rx="18" class="frame"/>
+  <rect x="822" y="47" width="356" height="636" fill="#eef1f4"/>
+  <path d="M822 260 L1178 320" class="road"/><path d="M940 47 L1010 683" class="road"/>
+  <rect x="822" y="47" width="356" height="636" class="scrim"/>
+  <rect x="840" y="190" width="320" height="330" rx="16" fill="#ffffff"/>
+  <text x="1000" y="226" class="th" text-anchor="middle">Thank you for mapping!</text>
+  <text x="1000" y="250" class="ts" text-anchor="middle">Your last 12 months with Things Mapper</text>
+  <g class="t">
+    <text x="860" y="286">Sessions</text><text x="1140" y="286" text-anchor="end" class="tb">38</text>
+    <text x="860" y="308">Distance</text><text x="1140" y="308" text-anchor="end" class="tb">412 km</text>
+    <text x="860" y="330">Packets</text><text x="1140" y="330" text-anchor="end" class="tb">3 104</text>
+    <text x="860" y="352">Gateways heard</text><text x="1140" y="352" text-anchor="end" class="tb">57</text>
+  </g>
+  <text x="860" y="386" class="t">Keeping Things Mapper in the stores</text>
+  <text x="860" y="404" class="t">costs about €352 this year; 55 % is</text>
+  <text x="860" y="422" class="t">covered so far.</text>
+  <rect x="860" y="446" width="136" height="48" rx="24" class="btn"/>
+  <text x="928" y="476" class="tb" text-anchor="middle" fill="#ffffff">Support</text>
+  <rect x="1004" y="446" width="136" height="48" rx="24" class="chip"/>
+  <text x="1072" y="476" class="tb" text-anchor="middle">Not now</text>
+  <text x="830" y="712" class="note">Only after Stop, while standing still; never</text>
+  <text x="830" y="728" class="note">at start, while mapping or in the car.</text>
+
+  <!-- ===== SCR-17 Support ===== -->
+  <text x="1220" y="30" class="cap">SCR-17 Support Things Mapper (store build)</text>
+  <rect x="1220" y="45" width="360" height="640" rx="18" class="frame"/>
+  <text x="1236" y="80" class="th">← Support</text>
+  <text x="1236" y="110" class="t">Voor niets gaat de zon op — only the</text>
+  <text x="1236" y="128" class="t">sun rises for free. If Things Mapper is</text>
+  <text x="1236" y="146" class="t">useful to you every year, help with its</text>
+  <text x="1236" y="164" class="t">yearly costs. You get no extra features:</text>
+  <text x="1236" y="182" class="t">everyone gets the same app.</text>
+  <rect x="1232" y="204" width="336" height="64" rx="10" fill="#0e7c86" opacity="0.10" stroke="#0e7c86"/>
+  <text x="1248" y="230" class="tb">Yearly supporter</text><text x="1552" y="230" class="tb" text-anchor="end">€5 / year</text>
+  <text x="1248" y="252" class="ts">Cancel at any time in the store</text>
+  <rect x="1232" y="280" width="336" height="48" rx="10" class="panel"/>
+  <text x="1248" y="309" class="tb">Small tip</text><text x="1552" y="309" class="tb" text-anchor="end">€2</text>
+  <rect x="1232" y="336" width="336" height="48" rx="10" class="panel"/>
+  <text x="1248" y="365" class="tb">Tip</text><text x="1552" y="365" class="tb" text-anchor="end">€5</text>
+  <rect x="1232" y="392" width="336" height="48" rx="10" class="panel"/>
+  <text x="1248" y="421" class="tb">Big tip</text><text x="1552" y="421" class="tb" text-anchor="end">€10</text>
+  <text x="1236" y="470" class="ts">Prices in your currency from the store. Purchases</text>
+  <text x="1236" y="486" class="ts">are handled by the store; Things Mapper sees no</text>
+  <text x="1236" y="502" class="ts">payment details.</text>
+  <text x="1236" y="540" class="t" fill="#0e7c86">Restore purchases</text>
+  <text x="1236" y="566" class="t" fill="#0e7c86">Manage subscription</text>
+  <text x="1236" y="592" class="t" fill="#0e7c86">What Things Mapper costs ›</text>
+  <text x="1230" y="712" class="note">FOSS, desktop and Pi builds: one button to</text>
+  <text x="1230" y="728" class="note">GitHub Sponsors instead of store products.</text>
+
+  <text x="20" y="770" class="ts">Prices decided: Paid edition €6 once, yearly supporter €5, tips €2 / €5 / €10. Texts thank, never blame (ADR-0008 D7).</text>
+</svg>

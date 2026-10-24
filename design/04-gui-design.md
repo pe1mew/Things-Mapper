@@ -5,6 +5,9 @@ Status: **Draft**
 | Rev | Date | Author | Change |
 |---|---|---|---|
 | 0.1 | 2026-09-11 | R. Welling (with Claude) | First complete version with wireframes |
+| 0.2 | 2026-10-24 | R. Welling (with Claude) | Project renamed to Things Mapper; §5a editions (ad slots, upgrade entry, import), car screens Paid-only, wireframe `free-edition-ads.svg` |
+| 0.3 | 2026-10-24 | R. Welling (with Claude) | Sponsor catalogue is the only ad source (OP-7); licence route L-A (OP-8); no ad consent |
+| 0.4 | 2026-10-24 | R. Welling (with Claude) | Free start screen; cost awareness and voluntary support (ADR-0008) |
 
 Related: [02 Requirements](02-requirements.md) (REQ-P, REQ-NF-030…034),
 [03 FDS](03-fds.md) (functions behind each screen), [05 TDS](05-tds.md)
@@ -27,7 +30,9 @@ Related: [02 Requirements](02-requirements.md) (REQ-P, REQ-NF-030…034),
 5. **Same mental model everywhere.** Identical vocabulary, colours, icons and
    screen names on all shells; only layout and input change.
 6. **Safe by default.** Consent before upload, secrets masked, destructive
-   actions confirmed, night theme when it is dark.
+   actions confirmed, night theme when it is dark,
+   no advertising while mapping and never on the car screen; the only
+   recurring notice is the Free edition's start screen, one tap to dismiss.
 
 ## 2. Design language
 
@@ -139,16 +144,22 @@ flowchart TB
 | SCR-11 | About | Version, licence, notices, privacy | FDS-12.2 | ✔ | ✔ | sheet | — |
 | SCR-12 | Gateway sheet | Details of a tapped gateway | FDS-8.5 | ✔ | ✔ | ✔ | — |
 | SCR-13 | Alerts & dialogs | Banners, confirmations, errors | FDS-11, §6 FDS | ✔ | ✔ | ✔ | host alerts |
+| SCR-14 | Free start screen (Free edition only) | Free edition notice, Paid offer, at every app start | FDS-17.5 | ✔ | ✔ (tablet) | — | — |
+| SCR-15 | What Things Mapper costs | Cost transparency from funding data | FDS-18.2 | ✔ | ✔ | sheet | — |
+| SCR-16 | Thank-you card | Yearly card after Stop with own figures and cost line | FDS-18.4 | ✔ | ✔ | ✔ | — |
+| SCR-17 | Support Things Mapper | Supporter subscription, tips, or GitHub Sponsors link | FDS-18.5 | ✔ | ✔ | sheet | — |
 | SCR-20 | Desktop main | Map + rail + side panel | FDS-8, 9 | — | ✔ | — | — |
 | SCR-30 | Kiosk landscape 800×480 | Map + indicator column + control | FDS-15.1 | — | — | ✔ | — |
 | SCR-31 | Kiosk portrait 720×1280 | Tiles + map + control | FDS-15.1 | — | — | ✔ | — |
-| SCR-40 | Car map | MapWithContentTemplate: app-drawn map + indicator pane + actions | FDS-14 | — | — | — | ✔ |
-| SCR-41 | Car fallback | GridTemplate indicators + ListTemplate packets | FDS-14 | — | — | — | ✔ |
+| SCR-40 | Car map (Paid edition only) | MapWithContentTemplate: app-drawn map + indicator pane + actions | FDS-14 | — | — | — | ✔ |
+| SCR-41 | Car fallback (Paid edition only) | GridTemplate indicators + ListTemplate packets | FDS-14 | — | — | — | ✔ |
 
 Wireframes: [gui/phone-screens.svg](gui/phone-screens.svg) (SCR-02, 03, 04,
 08), [gui/desktop-main.svg](gui/desktop-main.svg) (SCR-20),
 [gui/pi-kiosk.svg](gui/pi-kiosk.svg) (SCR-30, 31),
-[gui/android-auto.svg](gui/android-auto.svg) (SCR-40, 41).
+[gui/android-auto.svg](gui/android-auto.svg) (SCR-40, 41),
+[gui/free-edition-ads.svg](gui/free-edition-ads.svg) (Free edition ad slots and upgrade entry),
+[gui/support-and-costs.svg](gui/support-and-costs.svg) (SCR-14…17).
 
 ## 5. Screen specifications
 
@@ -255,7 +266,7 @@ the middle, Link/GNSS rows and the primary control at the bottom. All
 targets ≥ 64 px. Night theme automatically between sunset and sunrise
 (computed from the fix) or by setting.
 
-### SCR-40 / SCR-41 Android Auto
+### SCR-40 / SCR-41 Android Auto (Paid edition only)
 
 ![car wireframes](gui/android-auto.svg)
 
@@ -271,11 +282,115 @@ link) and *Start/Stop* action; a second `ListTemplate` lists the last 10
 packets ("−97 dBm · 3 GW · 12 s ago"). Both use the same view model as the
 phone's drive view.
 
+## 5a. Editions: ad slots, upgrade entry and import (FDS-17)
+
+Applies to the **Free** edition unless stated otherwise
+([ADR-0007](adr/ADR-0007-editions-and-monetisation.md)). The Paid edition
+shows the same screens without ad slots and without the upgrade entry, and
+adds Android Auto (SCR-40/41). Desktop and kiosk builds never show ads.
+
+![free edition wireframes](gui/free-edition-ads.svg)
+
+### Ad slot appearance
+
+- Container: `surface-2` background, 1 px `outline` border, 8 dp corner
+  radius, full content width with 8 dp margin; height 50 dp (phone) or
+  90 dp (tablet).
+- A 12 sp label **Sponsor** in the top-left corner, so the banner can
+  never be mistaken for app content or a control; banners never imitate app
+  controls.
+- Sponsor banners are static images; the content description is
+  "Advertisement: <alt text>".
+- A slot that has nothing to show collapses completely — no placeholder,
+  spinner or error text (FDS-17.2).
+
+### Positions (summary of FDS-17.2)
+
+| Screen | Free edition slot | While a session runs |
+|---|---|---|
+| SCR-02 Map (phone) | floating below the indicator chips, ≥ 48 dp away from Start and the map controls | **collapsed** — the map regains the space, the Start/Stop control does not move |
+| SCR-03 Drive view | none | — |
+| SCR-04/05/06/07/09/10/11 secondary screens | bottom of the content, above the bottom navigation | shown |
+| SCR-20 expanded layout (tablet) | top of the side panel on *Statistics* and *Gateways*; on *Live* only while idle | as left |
+| Onboarding, profile editor, sheets, dialogs, notifications, SCR-14…17 | none | — |
+| Car (SCR-40/41) | not present in the Free edition | — |
+
+### Upgrade entry (Free)
+
+The first row of *Settings* and a card in *About*: title *Get the ad-free
+edition*, subtitle *Includes Android Auto · €6 once*, opening the
+Paid edition's store listing. Apart from the start screen (SCR-14) the Paid edition is promoted nowhere
+else — no other pop-ups or reminders, nothing on the map, drive view or in
+notifications.
+
+### Become a sponsor (both editions)
+
+*About* contains *Become a sponsor* (opens the sponsoring page on the
+project site) and *About sponsor banners* (two sentences: banners come from
+the project's own sponsor list, nothing about you is shared).
+
+### Paid edition specifics
+
+- Edition badge on the launcher icon and the edition in *About*
+  (name and badge: GUI-OP-5).
+- First start with the Free edition installed: dialog *Import from Things
+  Mapper (Free)?* listing what is transferred (profiles without keys,
+  sessions, pending uploads, settings) and that API keys must be re-entered;
+  buttons *Import* and *Not now*; the action stays available in *Settings*.
+  After the import, profiles that need a key show a key icon in SCR-07.
+
+## 5b. Start screen, costs and support (FDS-17.5, FDS-18)
+
+![support and cost wireframes](gui/support-and-costs.svg)
+
+### SCR-14 Free start screen
+
+Full screen, light or dark theme, no sponsor content. From top to bottom:
+app mark, *Things Mapper — Free* and one line *All mapping functions, free
+of charge*; a card *The Paid edition — €6 once* with three check marks (no
+sponsor banners, no start screen, Android Auto in your car) and a note that
+data can be imported; the primary button *Buy the Paid edition* and the
+secondary button *Continue with Free* (equal size, both active at once, no
+countdown); a text link *What does Things Mapper cost to keep going?* to
+SCR-15. The system back gesture equals *Continue with Free*.
+
+### SCR-15 What Things Mapper costs
+
+A scrollable page from *About*: date of the figures; card *This year: €X*
+with the cost items; card *Covered so far: Y %* with one segmented bar
+(Paid sales, supporters, sponsors) and *Investments still to recover*; a
+card stating that development time is volunteered; buttons *Support Things
+Mapper* and *Become a sponsor*; link to all figures (doc 08). Numbers use
+tabular figures; the bar has a text equivalent for screen readers.
+
+### SCR-16 Yearly thank-you card
+
+A centred dialog over the screen the user is on after *Stop*: *Thank you
+for mapping!*, four of the user's own numbers of the last 12 months, the
+cost line, and two equal buttons *Support* and *Not now*. Shown at most once
+a year, only while standing still (FDS-18.4).
+
+### SCR-17 Support Things Mapper
+
+Explanation paragraph (including the Dutch saying *voor niets gaat de zon
+op*, translated in English builds), the yearly supporter option highlighted,
+three tip options, the note that the store handles payment, and links
+*Restore purchases*, *Manage subscription* and *What Things Mapper costs*.
+In `foss`, desktop and kiosk builds the products are replaced by one button
+*Support on GitHub Sponsors*.
+
+### Tone
+
+Thank, explain, never blame; no exclamation marks except in *Thank you for
+mapping!*; no red colours, no countdowns, no "last chance" wording
+(ADR-0008 D7). Texts are reviewed in English and Dutch (GUI-OP-7).
+
 ## 6. Onboarding (SCR-01)
 
 Four full-screen steps with a progress indicator, per FDS-12.1:
 
-1. **Welcome** — one paragraph, illustration of node + phone + gateway.
+1. **Welcome** — one paragraph, illustration of node + phone + gateway. In
+   the Free edition it also carries the start-screen notice (SCR-14).
 2. **Your data** — two columns: *stays on this device* (all measurements,
    sessions, profiles, secrets) and *sent to ttnmapper.org when you agree*
    (position, signal metadata, device and gateway ids, random installation
@@ -334,3 +449,6 @@ shrink the label before the number).
 | GUI-OP-2 | Whether the kiosk on-screen keyboard is in-app (default) or delegated to an OS keyboard (`squeekboard`/`onboard`) when present. |
 | GUI-OP-3 | Heading-up rotation on the phone map: on by default in follow mode or opt-in (motion sickness reports from other apps suggest opt-in). |
 | GUI-OP-4 | Exact car pane rows allowed by the host's row limit (6 on most hosts) — currently 5. |
+| GUI-OP-5 | Edition names and icon badge (e.g. *Things Mapper* and *Things Mapper Pro* or *… Ad-free*), linked to OP-10. |
+| GUI-OP-6 | Dutch wording of the banner label *Sponsor* and of *Become a sponsor*. |
+| GUI-OP-7 | English and Dutch texts of SCR-14…17 (tone check: thank, explain, never blame). |

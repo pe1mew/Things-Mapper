@@ -1,10 +1,10 @@
 # ADR-0001 — Licence: GPL-3.0-only
 
-Status: **Accepted** · Date: 2026-09-11
+Status: **Accepted**, amended by [ADR-0007](ADR-0007-editions-and-monetisation.md) · Date: 2026-09-11 (amended 2026-10-24)
 
 ## Context
 
-Chirp Mapper is a remake of the TTN Mapper Android app
+Things Mapper is a remake of the TTN Mapper Android app
 (`ttnmapper-android-v3`, JP Meijers). The upstream repository's `LICENSE`
 file is the unmodified GNU GPL v3.0 text; the source files carry no
 per-file notices and there is no "or any later version" statement. The
@@ -54,6 +54,33 @@ the same terms (inbound = outbound). The upstream authors are credited in
   phase 4.
 - If the project ever becomes a fully clean-room implementation, this ADR
   must be revisited before any licence change.
+
+## Amendment (2026-10-24)
+
+The maintainer decided to publish Free (with advertisements) and Paid
+editions on Google Play and — later — the Apple App Store
+([ADR-0007](ADR-0007-editions-and-monetisation.md)). Two consequences for
+this decision:
+
+- GPL-3.0-only **stays** the licence of the repository.
+- Linking a proprietary ad SDK and distributing through the App Store need a
+  GPLv3 section 7 additional permission. Because this ADR treats the remake
+  as a derived work of ttnmapper-android-v3, that permission requires either
+  a clean implementation of `app/` without upstream code (route L-A, after
+  which the "derived work" basis of this ADR is narrowed to the design
+  documents and test-only fixtures) or the upstream authors' agreement
+  (route L-B). The choice is open point OP-8; until it is decided no such
+  library is linked and the clean-implementation rule (REQ-C-009) applies
+  from the first line of code. The iOS consequence above is handled there.
+
+**Route L-A chosen (2026-10-24).** The additional permission is in force
+(see `license.md`): (a) store and platform vendor libraries, excluding
+advertising, analytics and tracking libraries; (b) distribution through
+application stores. The basis of this ADR changes accordingly: the
+application code is a clean implementation written from the design
+documents; only the evaluation's excerpts and the test-only fixtures come
+from ttnmapper-android-v3 and remain under the plain GPL-3.0. GPL-3.0-only
+remains the licence of the whole repository.
 
 ## Links
 

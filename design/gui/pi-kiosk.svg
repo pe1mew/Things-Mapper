@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1300 740" font-family="Helvetica, Arial, sans-serif">
-  <title>Chirp Mapper — Raspberry Pi kiosk: SCR-30 landscape 800×480 and SCR-31 portrait 720×1280 (scaled)</title>
+  <title>Things Mapper — Raspberry Pi kiosk: SCR-30 landscape 800×480 and SCR-31 portrait 720×1280 (scaled)</title>
   <defs>
     <style>
       .frame { fill: #121417; stroke: #333; stroke-width: 2; }

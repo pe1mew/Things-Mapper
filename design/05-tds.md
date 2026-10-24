@@ -5,6 +5,9 @@ Status: **Draft**
 | Rev | Date | Author | Change |
 |---|---|---|---|
 | 0.1 | 2026-09-11 | R. Welling (with Claude) | First complete version |
+| 0.2 | 2026-10-24 | R. Welling (with Claude) | Project renamed to Things Mapper; editions (ADR-0007): build variants `free`/`paid` × `foss`/`play`, `ads` module, `AdPolicy`, edition transfer, car service Paid-only |
+| 0.3 | 2026-10-24 | R. Welling (with Claude) | Sponsor catalogue is the only ad source (OP-7); licence route L-A (OP-8); no ad consent |
+| 0.4 | 2026-10-24 | R. Welling (with Claude) | Free start screen; cost awareness and voluntary support (ADR-0008); budget per milestone |
 
 Related: [02 Requirements](02-requirements.md), [03 FDS](03-fds.md),
 [04 GUI design](04-gui-design.md), [06 Test plan](06-test-plan.md),
@@ -19,7 +22,7 @@ Identifiers: **TDS-n.m** = design element (module, component, mechanism).
 
 ### 1.1 Purpose and scope
 
-This document describes *how* Chirp Mapper is built: the module structure,
+This document describes *how* Things Mapper is built: the module structure,
 the interfaces between layers, the data model, the protocol adapters, the
 map renderer, the platform shells, the cross-cutting mechanisms (security,
 logging, configuration) and the build and release pipeline. It is the
@@ -36,7 +39,9 @@ blueprint for phase 2 and 3 of the implementation plan.
 | TLS by default, secrets never leak | REQ-NF-020, REQ-NF-021 | Secure-storage port, redaction at the logging sink, TLS-first clients |
 | Runs on a Raspberry Pi 4 without a GPU driver stack | REQ-P-004, REQ-C-008 | Compose for Desktop with Skia software rendering fallback; no OpenGL-only libraries |
 | Testable without hardware | REQ-F-140, REQ-NF-041 | Ports have in-memory/replay implementations; replay tool |
-| No proprietary SDK in the core | REQ-C-003 | GMS only in an optional Android flavour |
+| No proprietary SDK in the core | REQ-C-003 | GMS only in the `play` variants, under additional permission (a); no ad, analytics or tracking SDK in any variant |
+| Free edition with ads, Paid edition without ads and with Android Auto, otherwise identical | REQ-F-150…162 | Edition as build-time constant; ads behind the `AdProvider` port in module `ads`; car service in the `paid` source set only (TDS-9.5, [ADR-0007](adr/ADR-0007-editions-and-monetisation.md)) |
+| Cost awareness and voluntary support without tracking | REQ-F-163…167, REQ-C-011 | Signed funding file with the sponsor-catalogue verifier; module `support` with store billing only in the `play` variants (TDS-9.6, [ADR-0008](adr/ADR-0008-cost-awareness-and-support.md)) |
 
 ### 1.3 Decisions
 
@@ -48,6 +53,8 @@ blueprint for phase 2 and 3 of the implementation plan.
 | [ADR-0004](adr/ADR-0004-car-platform.md) | Android Auto first, POI category with app-drawn map, IoT fallback |
 | [ADR-0005](adr/ADR-0005-storage-and-outbox.md) | SQLDelight database, transactional outbox for uploads |
 | [ADR-0006](adr/ADR-0006-mqtt-client.md) | MQTT port with HiveMQ MQTT Client as JVM/Android implementation |
+| [ADR-0007](adr/ADR-0007-editions-and-monetisation.md) | Free (ads) and Paid (no ads, Android Auto) editions; sponsor catalogue as the only ad source; licence route L-A with a GPLv3 §7 additional permission |
+| [ADR-0008](adr/ADR-0008-cost-awareness-and-support.md) | Cost page, *Why this update* release notes, yearly thank-you card, voluntary support (store billing or GitHub Sponsors), Paid price €6, no commercial services |
 
 ## 2. Architecture overview
 
@@ -139,14 +146,17 @@ long as the process. Optional embedded status HTTP server.
 | `net` (TDS-3.3) | KMP library | android, jvm, iosArm64 (HTTP only) | MQTT port implementation (HiveMQ on JVM/Android), Ktor HTTP client, TLS helpers, connectivity monitor |
 | `map` (TDS-3.4) | KMP library | android, jvm, iosArm64 | Map model, projection, tile source/cache, renderer, `DrawTarget` implementations (Compose, Android Canvas) |
 | `ui` (TDS-3.5) | Compose Multiplatform library | android, jvm, iosArm64 | Screens, view models, theme, navigation, resources (strings), on-screen keyboard |
-| `android` (TDS-3.6) | Android application | android | `Application`, `MainActivity`, `MappingService`, notifications, permissions, position sources, Car App service and screens, flavours `foss`/`play` |
+| `android` (TDS-3.6) | Android application | android | `Application`, `MainActivity`, `MappingService`, notifications, permissions, position sources, Car App service and screens (`paid` source set only), build variants `free`/`paid` × `foss`/`play` (TDS-9.5) |
 | `desktop` (TDS-3.7) | JVM application | jvm | `main()`, window/kiosk, config file, gpsd/NMEA sources, systemd unit, packaging, status server |
 | `tools/replay` (TDS-3.8) | JVM application | jvm | Record, publish, track modes |
 | `testing` (TDS-3.9) | KMP library (test fixtures) | all | Fixture messages, fake ports, golden files |
+| `ads` (TDS-3.10) | KMP library | android, jvm, iosArm64 | `AdProvider` port, `AdPolicy`, `NoAdProvider`, `SponsorAdProvider` (TDS-9.5) |
+| `support` (TDS-3.11) | KMP library | android, jvm, iosArm64 | `FundingRepository`, `StartScreenPolicy`, `YearlyCardPolicy`, `SupportPort`; providers: Play Billing (Android `play` variants), external link (`foss`, desktop), StoreKit (iOS later) (TDS-9.6) |
 
-Package root: `nl.pe1mew.chirpmapper` (open point TDS-OP-1 to confirm the
-reverse-domain). Android `applicationId` = package root; desktop package
-name `chirpmapper`.
+Package root: `nl.pe1mew.thingsmapper` (open point TDS-OP-1 to confirm the
+reverse-domain). Android `applicationId` = package root for the Free
+edition and package root + `.paid` for the Paid edition (TDS-9.5); desktop
+package name `thingsmapper`.
 
 Gradle: Kotlin DSL, version catalogue (`gradle/libs.versions.toml`),
 convention plugins in `build-logic/` for the KMP library, Compose library
@@ -221,7 +231,7 @@ link, replay position source).
 | `UploadWorker` | Per target: batch, build payload (`IngressPayloadBuilder`), send through `HttpPort`, apply FDS §5.3 state machine with backoff schedule | FDS-10 |
 | `Statistics` | Session statistics and per-gateway aggregates from the store | FDS-9.2 |
 | `Exporters` | Streaming CSV (RFC 4180) and GeoJSON writers over `kotlinx.io` sinks | FDS-7 |
-| `Importer` | Legacy TTN Mapper CSV and Chirp Mapper CSV → imported session | FDS-7.3 |
+| `Importer` | Legacy TTN Mapper CSV and Things Mapper CSV → imported session | FDS-7.3 |
 | `AlertEngine` | Evaluates alert conditions from `SessionState`, `PositionState`, `LinkState`, last packet | FDS-11 |
 | `Diagnostics` | Ring buffer of events, counters, redacted samples, bundle builder | FDS-13 |
 | `ProfileService` | CRUD, validation, topic derivation, import/export/QR payload, connection test orchestration | FDS-1 |
@@ -332,7 +342,7 @@ REQ-NF-010). See [ADR-0005](adr/ADR-0005-storage-and-outbox.md).
 ### 5.3 Settings (TDS-5.3)
 
 `multiplatform-settings` (Android `SharedPreferences`, JVM `Preferences`
-backed by a file under `$XDG_CONFIG_HOME/chirpmapper/`), wrapped by a typed
+backed by a file under `$XDG_CONFIG_HOME/thingsmapper/`), wrapped by a typed
 `SettingKey<T>` registry with defaults and migration of keys. The kiosk
 config file (TOML via `tomlkt`) overlays settings as read-only values.
 
@@ -361,7 +371,7 @@ config file (TOML via `tomlkt`) overlays settings as read-only values.
 (Apache-2.0, MQTT 3.1.1 and 5, TLS via `SSLContext`, Netty based, works on
 Android API 24+ and on JVM; [ADR-0006](adr/ADR-0006-mqtt-client.md)). Settings
 per FDS-3.1: MQTT 3.1.1 for TTS (only version it supports), clean session,
-keep-alive 30 s, QoS 0, client id `chirpmapper-` + 8 random base32 chars,
+keep-alive 30 s, QoS 0, client id `thingsmapper-` + 8 random base32 chars,
 automatic reconnect disabled in the library and implemented by the core's
 link state machine (so that backoff, jitter and terminal errors are under
 test), `connectTimeout` 10 s. TLS: platform trust store; optional per-profile
@@ -373,7 +383,7 @@ without copying into strings until parsing.
 
 Ktor client 3.x with the OkHttp engine on Android/JVM (Darwin later),
 `HttpTimeout` (connect 10 s, request 30 s), `UserAgent` plugin with
-`ChirpMapper/<version> (<platform>; <os>)`, `ContentNegotiation` with
+`ThingsMapper/<version> (<platform>; <os>)`, `ContentNegotiation` with
 `kotlinx.serialization`. Used by `UploadWorker` (POST JSON), the tile
 fetcher (GET with `If-None-Match`/`If-Modified-Since`, `Cache-Control`
 honoured, ≤ 2 concurrent per host through a per-host semaphore) and the
@@ -476,21 +486,22 @@ rendering for the Compose shells while the car keeps the own renderer
 
 | Element | Design |
 |---|---|
-| `ChirpMapperApp : Application` | Starts Koin with modules `core`, `data`, `net`, `map`, `androidPlatform`; creates notification channels |
+| `ThingsMapperApp : Application` | Starts Koin with modules `core`, `data`, `net`, `map`, `androidPlatform`; creates notification channels |
 | `MainActivity` | Single activity, `setContent { App() }`, edge-to-edge, handles permission results and the QR scanner (`ML Kit`-free: uses `zxing-android-embedded`, Apache-2.0) |
 | `MappingService : Service` | Foreground service, `foregroundServiceType="location"`; started with `startForegroundService()` from the UI or the car session; calls `startForeground()` in `onCreate` with the status notification; holds a `PARTIAL_WAKE_LOCK` while `SessionState.Running`; stops itself on session end; `onTaskRemoved` keeps running; notification actions *Stop* via `PendingIntent` to a `BroadcastReceiver` |
 | Position sources | `LocationManagerSource` (GPS provider, 1 s, 0 m, `GnssStatus` callback for satellites, `Location.hasAccuracy/hasSpeed/hasBearing`), `NetworkProviderSource` (display fallback only), `FusedSource` in flavour `play` only |
-| Permissions | `ACCESS_FINE_LOCATION` (+ `ACCESS_COARSE_LOCATION`), `POST_NOTIFICATIONS` (33+), `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_LOCATION`, `INTERNET`, `ACCESS_NETWORK_STATE`, `WAKE_LOCK`, `CAMERA` (QR, optional feature). No `AD_ID`, no background-location permission (the service is started while the app is visible). Battery optimisation: the app does **not** call `ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`; a diagnostics hint links to `ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS` when drop-outs are detected. Doze is rarely entered while moving (significant-motion), so no exemption is needed for the normal use case |
+| Permissions | `ACCESS_FINE_LOCATION` (+ `ACCESS_COARSE_LOCATION`), `POST_NOTIFICATIONS` (33+), `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_LOCATION`, `INTERNET`, `ACCESS_NETWORK_STATE`, `WAKE_LOCK`, `CAMERA` (QR, optional feature). No `AD_ID` (no edition uses an advertising id), no background-location permission (the service is started while the app is visible). Battery optimisation: the app does **not** call `ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`; a diagnostics hint links to `ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS` when drop-outs are detected. Doze is rarely entered while moving (significant-motion), so no exemption is needed for the normal use case |
 | Sounds | `SoundPool` for the packet cue, `RingtoneManager` picker for the user's choice, `AudioAttributes` usage `USAGE_ASSISTANCE_SONIFICATION` |
 | Export | `ActivityResultContracts.CreateDocument("text/csv")` and share sheet via `FileProvider` |
-| Flavours | `foss` (default, no Google dependencies, F-Droid friendly), `play` (adds `play-services-location` for `FusedSource`) |
+| Build variants | Dimension `services`: `foss` (default, no Google dependencies, F-Droid friendly), `play` (adds `play-services-location` for `FusedSource`); dimension `edition`: `free` (ad slots, upgrade entry, transfer provider), `paid` (car service, import client) — matrix in TDS-9.5 |
 | `minSdk` 26, `targetSdk` 36, `compileSdk` 36; R8 enabled with keep rules for `kotlinx.serialization` and HiveMQ/Netty | |
 
 ### 9.2 Android Auto (TDS-9.2)
 
 | Element | Design |
 |---|---|
-| `ChirpMapperCarAppService : CarAppService` | `createHostValidator()` = `ALLOW_ALL_HOSTS_VALIDATOR` in debug, Google's host validator in release; `onCreateSession()` returns `MappingCarSession` |
+| Edition | Paid edition only: the service, its manifest entries, `automotive_app_desc.xml` and the car screens live in the `paid` source set (REQ-F-160) |
+| `ThingsMapperCarAppService : CarAppService` | `createHostValidator()` = `ALLOW_ALL_HOSTS_VALIDATOR` in debug, Google's host validator in release; `onCreateSession()` returns `MappingCarSession` |
 | Manifest | `<category android:name="androidx.car.app.category.POI"/>`, `androidx.car.app.minCarApiLevel = 7`, `<uses-permission android:name="androidx.car.app.MAP_TEMPLATES"/>`, `automotive_app_desc.xml` with `<uses name="template"/>`; the IoT fallback swaps the category and drops `MAP_TEMPLATES` via a build flag (`carCategory=poi|iot`) |
 | `MapCarScreen` | `MapWithContentTemplate` with a `Pane`/`ItemList` of the five indicator rows (from `DriveViewModel`), `ActionStrip` with Start/Stop and Profiles; `MapController` with `SurfaceCallback`: on `onSurfaceAvailable` a render thread draws with `MapRenderer` + `AndroidCanvasDrawTarget` at ≤ 30 fps only while visible (`onVisibleAreaChanged` sets the stable area for the camera centre), dark mode from `CarContext.isDarkMode`; `onScroll`/`onScale` disable follow temporarily and it re-engages after 10 s |
 | `ProfilesCarScreen` | `ListTemplate` of saved profiles; selecting one activates it (stops a running session with a confirmation `MessageTemplate`) |
@@ -506,20 +517,173 @@ rendering for the Compose shells while the car keeps the own renderer
 | Entry | `main()` parses `--config`, `--kiosk`, `--replay`, `--headless-status`; loads TOML config (`tomlkt`); starts Koin; `application { Window(...) }` with `undecorated`/`fullscreen` in kiosk mode |
 | Rendering | Skiko default (OpenGL) with automatic fallback to software (`skiko.renderApi=SOFTWARE`) when GL is unavailable; on the Pi the systemd unit sets `SKIKO_RENDER_API=SOFTWARE` by default (Pi 4's VideoCore VI GL works with the KMS driver but software rendering is the predictable baseline; the spike WP-2.4 decides the default) |
 | Position sources | `GpsdSource` (TCP `?WATCH={"enable":true,"json":true}`, TPV/SKY parsing, reconnect), `NmeaSerialSource` (jSerialComm; GGA/RMC/GSA parsing shared with gpsd's NMEA fallback), `ManualSource`, `ReplaySource` |
-| Files | Config `$XDG_CONFIG_HOME/chirpmapper/config.toml`, data `$XDG_DATA_HOME/chirpmapper/chirpmapper.db`, cache `$XDG_CACHE_HOME/chirpmapper/tiles/`, logs `$XDG_STATE_HOME/chirpmapper/log/` (rotating 10 MB × 5) |
-| Kiosk | `chirpmapper-kiosk.service` (systemd user unit: `Restart=on-failure`, `RestartSec=5`, `Environment=SKIKO_RENDER_API=SOFTWARE`), autologin + Xorg/`labwc` session documented in `documentation/raspberry-pi-kiosk.md`; touch works through the toolkit's pointer events; screen rotation via the display stack, not the app |
+| Files | Config `$XDG_CONFIG_HOME/thingsmapper/config.toml`, data `$XDG_DATA_HOME/thingsmapper/thingsmapper.db`, cache `$XDG_CACHE_HOME/thingsmapper/tiles/`, logs `$XDG_STATE_HOME/thingsmapper/log/` (rotating 10 MB × 5) |
+| Kiosk | `thingsmapper-kiosk.service` (systemd user unit: `Restart=on-failure`, `RestartSec=5`, `Environment=SKIKO_RENDER_API=SOFTWARE`), autologin + Xorg/`labwc` session documented in `documentation/raspberry-pi-kiosk.md`; touch works through the toolkit's pointer events; screen rotation via the display stack, not the app |
 | Status server | Optional Ktor CIO server on `127.0.0.1:8787` serving `/status` (JSON, HTML) read-only |
 | Packaging | `compose.desktop { nativeDistributions { targetFormats(Deb) } }` with a bundled JRE (jlink); built natively per architecture (x86_64 on `ubuntu-22.04`, aarch64 on `ubuntu-24.04-arm` runners); AppImage may follow |
 | Shutdown | Long-press dialog offers *Exit* and, when permitted by polkit, *Power off* |
 
 ### 9.4 Replay tool (TDS-9.4)
 
-`chirpmapper-replay record|publish|track` built with `clikt`; `record`
+`thingsmapper-replay record|publish|track` built with `clikt`; `record`
 uses `MqttLink` and writes JSON Lines; `publish` uses a publisher variant of
 the MQTT client; `track` serves gpsd-style JSON on a TCP port from GPX/NMEA
 with `--speed` and `--loop`; a `demo` sub-command runs a local Mosquitto
 container (docker) or an embedded broker (`moquette`, Apache-2.0) and both
 publish and track from a bundled recording.
+
+### 9.5 Editions and advertising (TDS-9.5)
+
+Realises FDS-17 and [ADR-0007](adr/ADR-0007-editions-and-monetisation.md).
+
+#### Build variants (Android)
+
+Two flavour dimensions: `edition` (`free`, `paid`) × `services` (`foss`,
+`play`).
+
+| Variant | Application id | Ads | Car | Google Play Services | Distributed |
+|---|---|---|---|---|---|
+| `freePlay` | `nl.pe1mew.thingsmapper` | sponsor catalogue | no | location (fused) | Google Play (Free listing) |
+| `paidPlay` | `nl.pe1mew.thingsmapper.paid` | none | yes | location (fused) | Google Play (Paid listing) |
+| `freeFoss` | `nl.pe1mew.thingsmapper` | sponsor catalogue only | no | none | F-Droid / GitHub Releases (OP-9) |
+| `paidFoss` | `nl.pe1mew.thingsmapper.paid` | none | yes | none | not distributed (CI, local builds) |
+
+All variants contain the `support` module (TDS-9.6): the `play` variants with
+the Google Play Billing Library, the `foss` variants with the external-link
+provider.
+
+- `BuildConfig.EDITION` (`FREE`/`PAID`) is the only edition switch in
+  Kotlin code; common code receives it as `Edition` through DI.
+- Source sets: `src/free/` contains the ad wiring (`AdProvider` bindings,
+  start screen, upgrade entry, the `EditionTransferProvider`); `src/paid/`
+  contains the Car App service, its manifest entries and
+  `automotive_app_desc.xml`, and the import client. Neither edition contains
+  the other's source set, so the Paid APK holds no ad code and the Free APK
+  no car service (verified by TC-ED-02/13).
+- No variant contains an ad-network, analytics or tracking SDK; a CI check
+  fails the build if any merged manifest contains
+  `com.google.android.gms.permission.AD_ID` (REQ-NF-060).
+- Both editions share `versionCode`/`versionName` and are released
+  together.
+
+#### Ad module (`ads`, TDS-3.10)
+
+```kotlin
+interface AdProvider {                         // port, common code
+    val availability: StateFlow<AdAvailability> // NONE, LOADING, READY
+    fun bannerFor(slot: AdSlotSpec): Flow<AdContent?>   // null = collapse
+    fun onClick(content: AdContent)              // opens target externally
+}
+
+object AdPolicy {                              // pure, exhaustively unit-tested (TC-ED-03)
+    fun isSlotVisible(edition: Edition, screen: Screen, session: SessionState,
+                      modalOpen: Boolean, online: Boolean): Boolean
+}
+```
+
+- `NoAdProvider` — Paid edition, desktop and kiosk; always `NONE`.
+- `SponsorAdProvider` — common Kotlin: fetches the catalogue of FDS-17.3 via
+  the shared Ktor client (no cookies, no identifiers), verifies the Ed25519
+  signature with a built-in public key (`cryptography-kotlin`), stores the
+  catalogue and images in the cache directory (≤ 2 MB), selects and rotates
+  banners locally, opens targets through the platform URL opener. The
+  catalogue is produced by a small signing script in `tools/ads/` and
+  published from the `gh-pages` branch.
+- `AdSlot(spec)` composable (module `ui`) renders the slot of GUI §5a and
+  collapses when `AdPolicy` or the provider says so; screens contain only
+  `AdSlot(...)` calls, never provider code (REQ-F-159).
+- Requests are made only while the slot is composed and visible, at most one
+  refresh per 60 s; nothing runs in the background or in the foreground
+  service.
+
+#### Edition transfer (Free → Paid)
+
+- Both apps are signed with the same key (Play App Signing: "use the same
+  app signing key as another app in this developer account"; local and
+  F-Droid builds with the same release key where possible).
+- Free edition: `EditionTransferProvider` (`exported`, protected by the
+  custom permission `nl.pe1mew.thingsmapper.permission.EDITION_TRANSFER`
+  with `protectionLevel="signature"`) offers a consistent read-only snapshot
+  (SQLite `VACUUM INTO` copy) of the database without the outbox rows of
+  other targets, the settings as JSON and the installation id, plus a
+  `call("markTransferred", ids)` method that flags the pending outbox items
+  taken over by the Paid edition.
+- Paid edition: on first start queries the package
+  (`<queries><package android:name="nl.pe1mew.thingsmapper"/></queries>`),
+  offers the import (FDS-17.5), merges sessions by id, re-creates pending
+  outbox items, calls `markTransferred`, and lists profiles needing secrets.
+- iOS (phase 4): shared App Group `group.nl.pe1mew.thingsmapper`; the Free
+  app writes the snapshot on request, the Paid app imports it.
+
+#### iOS (phase 4)
+
+Two bundle ids (`nl.pe1mew.thingsmapper`, `nl.pe1mew.thingsmapper.paid`),
+edition from build configuration; `SponsorAdProvider` is common code; no
+App Tracking Transparency prompt (no tracking); App Store distribution
+relies on additional permission (b) in license.md (ADR-0007 D5).
+
+#### Store setup
+
+Two Play listings (Free, Paid) under one developer account with a payments
+profile, "contains ads" declared for Free only, Data Safety per edition,
+the Android Auto review for the Paid app only; EU DSA trader declaration;
+on Apple two App Store records with the Paid Applications agreement
+(phase 4). Details and checklists in WP-3.7.
+
+### 9.6 Cost awareness and support (TDS-9.6)
+
+Realises FDS-17.5 (start screen) and FDS-18; decision record
+[ADR-0008](adr/ADR-0008-cost-awareness-and-support.md); figures in
+[08 Costs and funding](08-costs-and-funding.md).
+
+Module `support` (TDS-3.11), common Kotlin:
+
+```kotlin
+class FundingRepository(http: HttpPort, verifier: SignatureVerifier, cache: FileCache, clock: Clock)
+    // fetch on demand, at most once per 24 h; Ed25519 check (shared verifier with the sponsor catalogue); cache with `updated`
+
+object StartScreenPolicy {                      // pure, unit-tested (TC-ED-15)
+    fun shouldShow(edition: Edition, launch: LaunchSource, session: SessionState, firstStart: Boolean): Boolean
+}                                               // LaunchSource = LAUNCHER, NOTIFICATION, RESUME, RESTORE
+
+object YearlyCardPolicy {                       // pure, unit-tested (TC-SU-03)
+    fun shouldShow(now: Instant, installedAt: Instant, sessions: Int, lastShown: Instant?,
+                   supporterUntil: Instant?, lastSpeedKmh: Double?, carScreen: Boolean, dialogOpen: Boolean): Boolean
+}
+
+interface SupportPort {
+    val products: StateFlow<List<SupportProduct>>   // store products with localised prices, or one external link
+    val supporterUntil: StateFlow<Instant?>
+    suspend fun purchase(product: SupportProduct): PurchaseResult
+    suspend fun restore()
+}
+```
+
+- `PlayBillingSupportProvider` (Android `play` variants of both editions):
+  Google Play Billing Library; products `support_yearly` (subscription) and
+  `tip_small`/`tip_medium`/`tip_large` (consumables, consumed after the thank-
+  you is granted); purchases acknowledged within the library's deadline;
+  `supporterUntil` = subscription expiry, or tip date + 12 months; restore via
+  the library's purchase query; *Manage subscription* opens the Play
+  subscriptions page.
+- `ExternalLinkSupportProvider` (`foss` variants, desktop, kiosk): a single
+  entry opening the maintainer's GitHub Sponsors page in the browser; the tap
+  date is stored locally.
+- `StoreKitSupportProvider` (iOS, phase 4): StoreKit 2 behind expect/actual.
+- The card's year figures come from SQLDelight queries over the last 12
+  months (sessions, distance from the statistics engine, packets, unique
+  gateways).
+- Start screen: the Free edition's `MainActivity` derives the `LaunchSource`
+  from the intent (launcher vs. the notification's `PendingIntent` extra)
+  and from `savedInstanceState` (restore); the composable lives in the `free`
+  source set, so the Paid edition contains none of it. The price line comes
+  from the funding data's `paid_price` for the user's currency.
+- Release notes: store changelog files in fastlane format per `versionCode`
+  (also read by F-Droid) with a mandatory *Why this update* line, checked in
+  CI; the same text feeds *About → What's new*.
+- Store setup (WP-3.7): the four products in both Play listings, license
+  testers for TC-SU-05, Data Safety "purchase history" for the `play`
+  variants.
 
 ## 10. Cross-cutting mechanisms (TDS-10)
 
@@ -553,6 +717,8 @@ messages come from the FDS §6 table via resource ids.
 | Malicious tile/config URLs | URL scheme allow-list (`https`, `http` with acknowledgement), no redirects to other hosts for tiles |
 | QR provisioning abuse | Profile JSON only, key-like strings refused, user confirms before saving |
 | Supply chain | Pinned versions, Maven Central/Google only, licence report, Dependabot |
+| Ad content as attack or privacy vector | Sponsor catalogue signature-verified (Ed25519), https only, image size and format caps, no WebView, targets open in the external browser; ad requests carry no identifiers; ad code absent from the Paid edition; no ad-network SDK in any edition |
+| Fake or replayed purchases | Supporter status only changes a badge and the thank-you card, so local verification through the store library suffices; no server and no entitlement worth attacking |
 
 ### 10.5 Time
 `Clock` port; wall-clock for measurement receipt time (`receivedAt`) and
@@ -573,9 +739,9 @@ SemVer for the software (`MAJOR.MINOR.PATCH`), Android `versionCode` =
 | Toolchain | JDK 21 (Temurin), Kotlin and Compose Multiplatform latest stable at WP-2.1, AGP matching; Gradle wrapper with configuration cache |
 | Static analysis | `ktlint` (Gradle plugin), `detekt` with the project rule set, Android Lint (`warningsAsErrors` for `HardcodedText`, `MissingPermission`, `UnusedResources`), a custom detekt rule forbidding `println`/`Log` outside the logging sink |
 | Tests | `core`/`map`/`data` unit tests on JVM (`kotlin.test`, Turbine for flows, `kotest-assertions`), SQLDelight verification, Android instrumentation for the service and secret store, Compose UI tests (desktop runner), integration tests with a Mosquitto container (Testcontainers) driven by the replay tool, screenshot tests for the wireframe screens |
-| CI (GitHub Actions) | `pr.yml`: lint + tests on `ubuntu-latest`; `android.yml`: assemble `foss` debug APK, run instrumentation on an emulator (API 30, 34); `desktop.yml`: `packageDeb` on `ubuntu-22.04` (x86_64) and `ubuntu-24.04-arm` (aarch64); `ios-compile.yml` (optional macOS job): `compileKotlinIosArm64` for `core`, `data`, `net`, `map` |
-| Release | Tag → `release.yml` builds signed APK/AAB (`foss` for GitHub/F-Droid, `play` for Play) with signing material from repository secrets, `.deb` x86_64 and arm64, `SHA256SUMS`, licence report (`licensee`), CycloneDX SBOM; changelog section becomes the release notes |
-| Distribution | GitHub Releases (all), Google Play (internal → closed → production tracks), F-Droid (reproducible `foss` build, later), `.deb` repository (later) |
+| CI (GitHub Actions) | `pr.yml`: lint + tests on `ubuntu-latest`; `android.yml`: assemble the `freeFoss` and `paidFoss` debug APKs, run instrumentation for both editions on an emulator (API 30, 34), check merged manifests (no `AD_ID` and no ad classes in `paid*`, no `CarAppService` in `free*`); `desktop.yml`: `packageDeb` on `ubuntu-22.04` (x86_64) and `ubuntu-24.04-arm` (aarch64); `ios-compile.yml` (optional macOS job): `compileKotlinIosArm64` for `core`, `data`, `net`, `map` |
+| Release | Tag → `release.yml` builds signed APK/AAB (`freePlay` and `paidPlay` AABs for the two Play listings, `freeFoss` APK for GitHub/F-Droid per OP-9) with signing material from repository secrets, `.deb` x86_64 and arm64, `SHA256SUMS`, licence report (`licensee`), CycloneDX SBOM; changelog section becomes the release notes, which must contain a *Why this update* line (store changelog files in fastlane format per `versionCode`, also read by F-Droid; CI fails without it) |
+| Distribution | GitHub Releases (desktop/Pi `.deb`; Android `freeFoss` per OP-9), Google Play Free and Paid listings (internal → closed → production tracks), F-Droid (reproducible `freeFoss` build, later, OP-9), App Store Free and Paid (phase 4), `.deb` repository (later) |
 
 ## 12. Dependencies (planned)
 
@@ -599,8 +765,12 @@ SemVer for the software (`MAJOR.MINOR.PATCH`), Android `versionCode` =
 | moquette (optional, demo broker) | tools | Apache-2.0 | |
 | Test: kotlin.test, Turbine, kotest-assertions, Testcontainers, MockK | tests | Apache-2.0 / MIT | |
 | Fallback: MapComposeMP | ui (only if ADR-0003 fallback is triggered) | Apache-2.0 | |
+| cryptography-kotlin (Ed25519 verification) | ads | Apache-2.0 | sponsor catalogue signature |
+| Google Play services location (`play-services-location`) | android `play` variants | proprietary (Google terms) | under additional permission (a); absent from `foss` |
+| Google Play Billing Library | android `play` variants | proprietary (Google terms) | supporter subscription and tips, under additional permission (a); absent from `foss` |
 
-All GPL-3.0-compatible (REQ-C-001). A generated report per release lists the
+All GPL-3.0-compatible except Google Play services in the `play` variants,
+which are covered by additional permission (a) in license.md (REQ-C-001). A generated report per release lists the
 exact versions.
 
 ## 13. Performance budgets and how they are met
@@ -624,15 +794,19 @@ exact versions.
 | TDS-R-4 | Google Play POI category refusal | Build flag for IoT fallback (TDS-9.2), decision at WP-3.3 |
 | TDS-R-5 | ttnmapper.org contract changes or rate limits | OP-1 coordination; payload builder isolated and versioned; server messages surfaced |
 | TDS-R-6 | Secret Service absent on kiosk images | 0600 file fallback with warning; documented |
-| TDS-OP-1 | Confirm package root / application id `nl.pe1mew.chirpmapper` | Maintainer, WP-2.1 |
+| TDS-OP-1 | Confirm package root / application id `nl.pe1mew.thingsmapper` | Maintainer, WP-2.1 |
 | TDS-OP-2 | Exact Compose/Kotlin/AGP versions at WP-2.1 | Developer |
 | TDS-OP-3 | Whether to ship `armeabi-v7a` (older phones) | Maintainer, WP-2.3 |
+| TDS-R-7 | Sponsor income stays low | The Paid edition carries the cost coverage; no ad-network fallback by design (ADR-0007 D4) |
+| TDS-R-8 | Two near-identical apps drift apart | One code base, edition only as build constant, CI builds and tests both editions on every PR (TC-ED-01) |
+| TDS-R-9 | Funding data goes stale or wrong | `updated` date shown, outdated note after 120 days, ledger script with checks, refresh at every release and at least quarterly |
+| TDS-OP-4 | Confirm Paid application id suffix `.paid` and edition names (OP-10) | Maintainer, WP-2.16 |
 
 ## 15. Traceability (requirements → design)
 
 | Requirement group | Design elements |
 |---|---|
-| REQ-P-001…008 | TDS-3 (targets), TDS-9.1, 9.2, 9.3, TDS-8 (adaptive layouts), TDS-11 (arm64 build), flavour `foss` |
+| REQ-P-001…009 | TDS-3 (targets), TDS-9.1, 9.2, 9.3, 9.5, TDS-8 (adaptive layouts), TDS-11 (arm64 build), variant `foss` |
 | REQ-F-001…009 | TDS-4.3 `ProfileService`, TDS-4.4 `ProfileFieldSpec`, TDS-5.4, TDS-8 |
 | REQ-F-010…015 | TDS-4.3 `SessionController`, TDS-9.1 `MappingService`, TDS-9.3 kiosk |
 | REQ-F-020…028 | TDS-4.4, TDS-6.1, TDS-2.3 |
@@ -648,6 +822,8 @@ exact versions.
 | REQ-F-120…124 | TDS-9.2 |
 | REQ-F-130…135 | TDS-9.3 |
 | REQ-F-140, 141 | TDS-4.6, TDS-9.4 |
+| REQ-F-150…162 | TDS-9.5, TDS-9.6 (start screen), TDS-3.10 (`ads`), TDS-9.1 build variants, TDS-9.2 (car Paid-only), TDS-10.4 |
+| REQ-F-163…167 | TDS-9.6, TDS-3.11 (`support`), TDS-11 (release notes) |
 | REQ-NF-001…006 | TDS-13 |
 | REQ-NF-010…013 | TDS-5.2, TDS-2.3, TDS-9.3 supervision, TDS-5.1 migrations |
 | REQ-NF-020…024 | TDS-5.4, TDS-6.1, 6.2, TDS-10.2, 10.4, TDS-11 |
@@ -655,4 +831,4 @@ exact versions.
 | REQ-NF-040…044 | TDS-2.1, TDS-3, TDS-11 |
 | REQ-NF-050 | TDS-4.3 `Diagnostics`, TDS-10.2 |
 | REQ-NF-060…062 | TDS-9.1 permissions, TDS-7.2, TDS-8 privacy page |
-| REQ-C-001…009 | TDS-12, TDS-9.1 flavours, TDS-11, TDS-7.2 |
+| REQ-C-001…011 | TDS-12, TDS-9.1 build variants, TDS-9.5, TDS-9.6, TDS-11, TDS-7.2 |

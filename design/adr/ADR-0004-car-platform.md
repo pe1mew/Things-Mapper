@@ -1,6 +1,6 @@
 # ADR-0004 — Car platform: Android Auto via the Car App Library, POI category, IoT fallback
 
-Status: **Accepted** · Date: 2026-09-11 (target confirmed by the maintainer)
+Status: **Accepted** · Date: 2026-09-11 (target confirmed by the maintainer); amended 2026-10-24 by [ADR-0007](ADR-0007-editions-and-monetisation.md)
 
 ## Context
 
@@ -42,6 +42,11 @@ Automotive OS is a later packaging variant of the same car module.
 
 ## Consequences
 
+- **Paid edition only** (amendment 2026-10-24, ADR-0007): the car service
+  exists only in the Paid, ad-free edition. The Free edition has no
+  `CarAppService`, never appears on a car screen, and so cannot conflict
+  with the car app quality rules on advertising (AD-1, NA-1). Google's
+  Android Auto review applies to the Paid app only.
 - Manifest: `CarAppService` with category `androidx.car.app.category.POI`,
   `minCarApiLevel 7`, `MAP_TEMPLATES` permission; `automotive_app_desc.xml`.
 - The map renderer must draw to an Android `Surface` (ADR-0003).

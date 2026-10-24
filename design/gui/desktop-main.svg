@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1320 860" font-family="Helvetica, Arial, sans-serif">
-  <title>Chirp Mapper — SCR-20 desktop / tablet main window (1280×800)</title>
+  <title>Things Mapper — SCR-20 desktop / tablet main window (1280×800)</title>
   <defs>
     <style>
       .frame { fill: #ffffff; stroke: #333; stroke-width: 2; }
@@ -94,5 +94,5 @@
 
   <!-- status bar -->
   <rect x="20" y="815" width="1280" height="30" fill="#f3f4f6" stroke="#c7ccd1"/>
-  <g class="ts"><text x="100" y="834">Profile: My mapper on TTN (TTS v3, TLS)</text><text x="520" y="834">DB 214 MB · tile cache 180/1000 MB</text><text x="1000" y="834">Chirp Mapper 0.3.0 · GPL-3.0</text></g>
+  <g class="ts"><text x="100" y="834">Profile: My mapper on TTN (TTS v3, TLS)</text><text x="520" y="834">DB 214 MB · tile cache 180/1000 MB</text><text x="1000" y="834">Things Mapper 0.3.0 · GPL-3.0</text></g>
 </svg>

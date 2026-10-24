@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1300 700" font-family="Helvetica, Arial, sans-serif">
-  <title>Chirp Mapper — Android Auto: SCR-40 MapWithContentTemplate (POI category) and SCR-41 GridTemplate fallback (IoT category)</title>
+  <title>Things Mapper — Android Auto: SCR-40 MapWithContentTemplate (POI category) and SCR-41 GridTemplate fallback (IoT category)</title>
   <defs>
     <style>
       .frame { fill: #0b0d10; stroke: #333; stroke-width: 2; }
@@ -28,7 +28,7 @@
   <!-- host-drawn content pane (left) -->
   <rect x="36" y="61" width="300" height="330" rx="12" class="card"/>
   <g class="tw">
-    <text x="52" y="90" font-weight="bold" font-size="16">Chirp Mapper</text>
+    <text x="52" y="90" font-weight="bold" font-size="16">Things Mapper</text>
     <circle cx="60" cy="122" r="7" class="ok"/><text x="76" y="127">Link · TTS eu1 · connected</text>
     <circle cx="60" cy="160" r="7" class="ok"/><text x="76" y="165">GNSS · 4 m · 1 s</text>
     <rect x="52" y="188" width="16" height="16" fill="#ff7f00" stroke="#e6e8eb"/><text x="76" y="203">Last packet · 12 s · −97 dBm · 3 GW</text>
@@ -47,7 +47,7 @@
   <!-- ===== SCR-41 grid fallback ===== -->
   <text x="860" y="30" class="cap">SCR-41 fallback · GridTemplate (IoT category)</text>
   <rect x="860" y="45" width="420" height="440" class="frame"/>
-  <text x="880" y="80" class="tw" font-weight="bold" font-size="16">Chirp Mapper · mapping</text>
+  <text x="880" y="80" class="tw" font-weight="bold" font-size="16">Things Mapper · mapping</text>
   <g>
     <rect x="880" y="96" width="120" height="110" rx="12" class="card"/><text x="892" y="116" class="tws">RSSI</text><text x="892" y="170" fill="#ff7f00" font-size="34" font-weight="bold">−97</text><text x="892" y="196" class="tws">dBm</text>
     <rect x="1010" y="96" width="120" height="110" rx="12" class="card"/><text x="1022" y="116" class="tws">SNR</text><text x="1022" y="170" fill="#e6e8eb" font-size="34" font-weight="bold">7.5</text><text x="1022" y="196" class="tws">dB</text>

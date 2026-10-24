@@ -5,6 +5,9 @@ Status: **Draft**
 | Rev | Date | Author | Change |
 |---|---|---|---|
 | 0.1 | 2026-09-11 | R. Welling (with Claude) | First complete version |
+| 0.2 | 2026-10-24 | R. Welling (with Claude) | Project renamed to Things Mapper; editions (ADR-0007): TC-ED-01…14, both editions in CI, car tests on the Paid edition |
+| 0.3 | 2026-10-24 | R. Welling (with Claude) | Sponsor catalogue is the only ad source (OP-7); licence route L-A (OP-8); no ad consent |
+| 0.4 | 2026-10-24 | R. Welling (with Claude) | Free start screen; cost awareness and voluntary support (ADR-0008); budget per milestone |
 
 Related: [02 Requirements](02-requirements.md) (acceptance basis),
 [03 FDS](03-fds.md) (expected behaviour), [05 TDS](05-tds.md) (test hooks,
@@ -21,7 +24,7 @@ application), **F** field (real network, real movement), **A** acceptance
 ## 1. Introduction
 
 ### 1.1 Purpose
-Define how Chirp Mapper is verified against its requirements and validated
+Define how Things Mapper is verified against its requirements and validated
 in the field, which environments and data are needed, and when a milestone
 may be called done.
 
@@ -83,16 +86,17 @@ contract behaviour.
 | Environment | Content | Used for |
 |---|---|---|
 | CI-JVM | GitHub-hosted Ubuntu, JDK 21, Testcontainers (Mosquitto 2.x, stub ingress) | U, I |
-| CI-Android | Emulators API 30, 34, 36 (x86_64), `foss` flavour | I (service, secret store), S (UI tests) |
+| CI-Android | Emulators API 30, 34, 36 (x86_64), `freeFoss` and `paidFoss` variants | I (service, secret store), S (UI tests) |
 | CI-Desktop | Compose UI tests headless (x86_64), `packageDeb` on x86_64 and arm64 runners | S |
-| LAB-Phone-A | Current mid-range phone, Android 15/16, Play flavour and foss flavour | S, F |
+| LAB-Phone-A | Current mid-range phone, Android 15/16, `freePlay`, `paidPlay` and `freeFoss` variants | S, F |
 | LAB-Phone-B | Older phone, Android 8.1 or 10 (minSdk coverage) | S |
 | LAB-Tablet | 10" tablet (expanded layout) | S |
 | LAB-Pi4 | Raspberry Pi 4 (2 GB), Raspberry Pi OS 64-bit, official 7" display 800×480, u-blox USB GNSS via gpsd, LTE hotspot | S, F, performance |
 | LAB-Pi5 | Raspberry Pi 5, Touch Display 2 (720×1280) | S |
 | LAB-Desktop | Ubuntu 24.04 x86_64 (X11 and Wayland/XWayland) | S |
-| LAB-Car | Desktop Head Unit (DHU) on the developer machine; one real Android Auto head unit (wired) | S, F |
-| NS-TTS | The Things Stack Sandbox application `chirpmapper-test` with two devices (`mapper-01`, `mapper-02`) and an MQTT API key; one real node transmitting every 10 s at SF7 (GPS-less payload) | I (recording), F |
+| LAB-Car | Desktop Head Unit (DHU) on the developer machine; one real Android Auto head unit (wired) on a 12 V bench supply (doc 08 I-5, I-6); Paid edition | S, F |
+| LAB-Billing | Play Console license testers and test products for both listings (StoreKit sandbox in phase 4) | S |
+| NS-TTS | The Things Stack Sandbox application `thingsmapper-test` with two devices (`mapper-01`, `mapper-02`) and an MQTT API key; one real node transmitting every 10 s at SF7 (GPS-less payload) | I (recording), F |
 | NS-CS4 | ChirpStack v4 in docker (with MQTT broker), one simulated device (ChirpStack simulator) and — where available — the same real node through a private gateway | I (recording), F |
 | TOOLS | replay tool, `adb`, Perfetto, `dumpsys batterystats`, Battery Historian, `mitmproxy` (negative TLS tests), `tcpdump` | performance, security |
 
@@ -100,7 +104,7 @@ contract behaviour.
 
 | Data set | Content | Source |
 |---|---|---|
-| FIX-TTS | ≥ 12 recorded TTS v3 `ApplicationUp` messages: LoRa SF7…SF12, FSK, LR-FHSS, with/without `dev_eui`, with Packet Broker receptions (forwarder ids present/absent, `ttnv2`), gateway location present/absent/null-island, `simulated:true`, missing `f_port`, `coding_rate` in both places, timestamps with 9 fractional digits | upstream `TestJsonParsing.kt` (GPL, attributed) + new recordings from NS-TTS |
+| FIX-TTS | ≥ 12 recorded TTS v3 `ApplicationUp` messages: LoRa SF7…SF12, FSK, LR-FHSS, with/without `dev_eui`, with Packet Broker receptions (forwarder ids present/absent, `ttnv2`), gateway location present/absent/null-island, `simulated:true`, missing `f_port`, `coding_rate` in both places, timestamps with 9 fractional digits | upstream `TestJsonParsing.kt` (GPL, attributed; kept in the test-only directory `testing/upstream-fixtures/`, REQ-C-009) + new recordings from NS-TTS |
 | FIX-CS4 | ≥ 10 ChirpStack v4 events: LoRa, FSK, LR-FHSS, multiple `rxInfo`, `crcStatus` ≠ OK, location sources, 64-bit fields as strings, missing `time` | recordings from NS-CS4 + ChirpStack documentation examples |
 | FIX-CS3 | 2 ChirpStack v3 events (legacy detection) | upstream fixture |
 | FIX-BAD | Malformed JSON, empty payload, 100 kB payload, wrong topic, binary protobuf payload | synthetic |
@@ -212,7 +216,7 @@ Columns: id, title, type, requirements, procedure (summary), expected result.
 | TC-MA-01 | Projection round trip | U | REQ-F-060 | lat/lon ↔ world ↔ screen at zooms 2–19 | error < 1e-9 world units |
 | TC-MA-02 | Visible tile set | U | REQ-F-061 | camera cases incl. rotation, date line | correct z/x/y set |
 | TC-MA-03 | Tile cache and validators | I | REQ-F-061, NF-006 | stub tile server; repeated loads | second load from cache; `If-None-Match` sent; ≤ 2 concurrent per host |
-| TC-MA-04 | User-Agent and attribution | I/S | REQ-F-061, NF-061 | capture requests; view map | UA `ChirpMapper/…`; attribution visible for every preset and custom source |
+| TC-MA-04 | User-Agent and attribution | I/S | REQ-F-061, NF-061 | capture requests; view map | UA `ThingsMapper/…`; attribution visible for every preset and custom source |
 | TC-MA-05 | Coverage overlay URL follows network id | U | REQ-F-062 | TTS profile | `…/network/NS_TTS_V3%3A%2F%2Fttn%40000013/…`; ChirpStack → unavailable |
 | TC-MA-06 | Layers toggles and persistence | S | REQ-F-063, F-067 | toggle; restart | state restored |
 | TC-MA-07 | Follow mode and re-centre | S | REQ-F-060 | pan → follow off, control visible; tap → follow on | per FDS-8.4 |
@@ -272,11 +276,14 @@ Columns: id, title, type, requirements, procedure (summary), expected result.
 | TC-DS-02 | Bug-report bundle has no secrets | S | REQ-F-111 | configure profile with key `NNSXS.TEST…`; export bundle; grep | not found anywhere |
 | TC-DS-03 | Diagnostics counters | S | REQ-F-110, NF-050 | provoke parse errors, reconnects | counters and events shown |
 | TC-DS-04 | No cleartext without acknowledgement (network capture) | S | REQ-NF-020 | `tcpdump` during TLS session | no plaintext credentials |
-| TC-DS-05 | Permissions manifest | U (lint) | REQ-NF-060 | inspect merged manifest | only listed permissions; no `AD_ID` |
-| TC-DS-06 | Dependency licences | U (CI) | REQ-C-001 | licence report | all GPL-3.0-compatible |
+| TC-DS-05 | Permissions manifest | U (lint) | REQ-NF-060 | inspect merged manifests of all variants | only listed permissions; no `AD_ID` in any variant |
+| TC-DS-06 | Dependency licences | U (CI) | REQ-C-001 | licence report | all GPL-3.0-compatible except Google Play services in `play` variants (additional permission (a)); no advertising, analytics or tracking library |
 | TC-DS-07 | Payload size cap | U | TDS-10.4 | 1 MB message | rejected, counted |
 
 ### 6.13 Car (TC-CA)
+
+All car tests run against the **Paid** edition (REQ-F-160); TC-ED-13
+verifies that the Free edition has no car service.
 
 | ID | Title | Type | Req | Procedure | Expected |
 |---|---|---|---|---|---|
@@ -342,15 +349,50 @@ Columns: id, title, type, requirements, procedure (summary), expected result.
 |---|---|---|---|---|---|
 | TC-CX-01 | TalkBack pass | X | REQ-NF-033 | navigate all screens | labels, order |
 | TC-CX-02 | Contrast check | X | REQ-NF-030 | tokens against surfaces | ≥ 4.5:1 text, ≥ 3:1 chips |
-| TC-CX-03 | Play pre-launch and Data Safety consistency | X | REQ-NF-060, NF-023 | compare declaration with TC-DS-02/04 findings | consistent |
+| TC-CX-03 | Play pre-launch and Data Safety consistency | X | REQ-NF-060, NF-023 | compare declarations of both editions with TC-DS-02/04 and TC-ED-02/06 findings | consistent |
 | TC-CX-04 | OSM policy checklist | X | REQ-NF-061 | UA, attribution, caching, concurrency | all satisfied |
 | TC-CX-05 | Font scale 200 % | S | REQ-NF-030 | phone | no clipped controls |
+
+### 6.20 Editions and advertising (TC-ED)
+
+| ID | Title | Type | Req | Procedure | Expected |
+|---|---|---|---|---|---|
+| TC-ED-01 | Functional parity of editions | S (CI) | REQ-F-151, F-152 | run the complete system/UI suite (all TC-S cases except TC-CA) against `freeFoss` and `paidFoss` in the CI matrix | identical results; any edition-specific failure is a defect |
+| TC-ED-02 | Paid edition contains no ad code | U (CI) | REQ-F-152, NF-060 | `apkanalyzer`/dex scan and merged-manifest check of `paidPlay`/`paidFoss` | no ad SDK or sponsor-provider classes reachable, no consent SDK, no `AD_ID`, no ad network hosts in resources |
+| TC-ED-03 | `AdPolicy` decision table | U | REQ-F-153 | all combinations of edition × screen × session state × modal × consent × online | visible exactly per FDS-17.2 |
+| TC-ED-04 | No ads while mapping and in notifications | S | REQ-F-153 | Free edition: start a session on the map, open drive view, inspect notification and lock screen; stop | map/drive slot collapsed while Starting/Running/Stopping; never in notification or lock screen; reappears when idle |
+| TC-ED-05 | Slot placement and spacing | S (screenshot) | REQ-F-153 | screenshots at 360×640 dp, 411×891 dp and tablet; measure distance to Start/Stop, map controls, attribution | ≥ 48 dp; attribution never covered; label *Sponsor*/*Ad* visible |
+| TC-ED-06 | No personal data reaches the ad source | S | REQ-F-154, NF-022 | mitmproxy during a replayed session in the Free edition; search all ad-related requests for coordinates, device/gateway ids, profile data, installation id | none found; sponsor requests are plain GETs without identifiers |
+| TC-ED-07 | *Withdrawn 2026-10-24* — no ad consent (REQ-F-155 withdrawn, OP-7) | — | — | — | — |
+| TC-ED-08 | Ad failure and traffic budget | S | REQ-F-156 | offline, no fill, invalid catalogue signature; 1 h foreground use with network counter | slot collapses silently; ≤ 1 refresh per 60 s; ≤ 1 MB/h; no wake locks from ad code |
+| TC-ED-09 | Import from Free into Paid | S | REQ-F-158 | Free edition with 3 sessions, 20 pending uploads and 2 profiles; install Paid; import; repeat import | data complete; profiles flagged for keys; pending uploads sent once (stub ingress counts); repeated import adds nothing |
+| TC-ED-10 | Sponsor catalogue handling | U/I | REQ-F-159, NF-022 | stub host serving valid, tampered and expired catalogues; count fetches | tampered/expired rejected (no ads); ≤ 1 fetch per 24 h; images cached; tap opens external browser with `utm_source=thingsmapper` |
+| TC-ED-11 | Desktop and kiosk builds without ads | S | REQ-F-161 | inspect desktop/Pi packages and UI | no slots, no ad requests |
+| TC-ED-12 | Store declarations | X | REQ-NF-060, NF-064, REQ-C-010 | compare Data Safety (per edition), "contains ads", trader declaration and listings with TC-ED-02/06 findings | consistent |
+| TC-ED-13 | Free edition has no car service | U (CI) | REQ-F-160 | merged manifest of `free*` variants; connect Free edition to the DHU | no `CarAppService`, no `automotive_app_desc`; app not listed on the DHU |
+| TC-ED-14 | Upgrade entry | S | REQ-F-157 | Free edition: check settings, about, map, drive view, notifications | entry only in settings, about and the start screen; opens the Paid listing; absent in Paid |
+| TC-ED-15 | Free start screen rules | U + S | REQ-F-162 | `StartScreenPolicy` table; then launcher start, resume from background, open from the mapping notification, session running, rotation and process restore, first start, Paid edition, desktop | shown only on a launcher start without a running session; first start shows the notice in onboarding; both buttons active at once; back = continue; no sponsor content; never in Paid or desktop |
+
+### 6.21 Cost awareness and support (TC-SU)
+
+| ID | Title | Type | Req | Procedure | Expected |
+|---|---|---|---|---|---|
+| TC-SU-01 | Funding data handling | U/I | REQ-F-167 | stub host with valid, tampered and expired files; count fetches; capture Paid-edition traffic | tampered rejected; ≤ 1 fetch per 24 h and only when needed; no identifiers; Paid fetches the funding file but never the sponsor catalogue |
+| TC-SU-02 | Cost page | S | REQ-F-163 | open with fresh data, with cached data offline, without data offline, with data older than 120 days | figures and date; cached figures with date; explanation without amounts; outdated note |
+| TC-SU-03 | Thank-you card decision table | U | REQ-F-165 | `YearlyCardPolicy` with a fake clock: install age, session count, last shown, supporter, speed, car screen, open dialog | shown exactly per FDS-18.4 |
+| TC-SU-04 | Thank-you card in use | S | REQ-F-165 | replay a session; stop while moving (replayed 30 km/h) and while standing; advance the clock 12 months | not shown while moving or running; shown once when standing; not again within 12 months; the user's figures match the statistics |
+| TC-SU-05 | Store purchases | S | REQ-F-166 | Play license tester: buy, cancel and renew the subscription, buy each tip, restore after reinstall | purchases acknowledged/consumed; supporter badge; card suppressed; no function changes; Free keeps banners and start screen |
+| TC-SU-06 | Support outside the stores | S | REQ-F-166 | `freeFoss`, desktop, kiosk: tap *Support*; dependency/dex scan | GitHub Sponsors opens in the browser; card suppressed for 12 months; no Play Billing classes in `foss` |
+| TC-SU-07 | No outside payment links in store builds | U (CI) | REQ-C-011 | scan strings, resources and URLs of `freePlay` and `paidPlay` | no GitHub Sponsors, PayPal or similar payment URLs |
+| TC-SU-08 | Why this update | U (CI) / S | REQ-F-164 | release build without the line; *About → What's new* after an update | CI refuses the build; the installed version's notes with the line; no dialog after the update |
+| TC-SU-09 | Data Safety purchase history | X | REQ-NF-060 | compare the Play declarations with the billing use | purchase history declared for the `play` variants |
+| TC-SU-10 | Prices shown | X | REQ-F-162, REQ-C-010 | start screen in EUR and non-EUR locales; compare with the store listings | €6 in EUR locales, generic text elsewhere; consistent with the store price |
 
 ## 7. Field test protocol
 
 **Preparation.** Charge devices to 100 %; node transmitting every 10 s at
 SF7 (EU868), registered in NS-TTS (and NS-CS4 for TC-F-06); phone A with
-Chirp Mapper (`play` or `foss` as under test), phone B with TTN Mapper v3
+Things Mapper (`freePlay`, `paidPlay` or `freeFoss` as under test), phone B with TTN Mapper v3
 linked to the same device; both subscribed (MQTT allows several
 subscribers); Pi 4 box powered from the car with gpsd running and a hotspot
 from phone C; note app versions, git SHA, weather, time.
@@ -363,7 +405,7 @@ GPX independently (dedicated GNSS logger).
 **Procedure.** Start all devices within 30 s of each other; drive the loop;
 at the mid-point switch phone A to airplane mode for 5 min (queue test);
 stop all within 30 s of each other; export CSV from all devices and the
-diagnostics bundle from Chirp Mapper; read `batterystats` for phone A.
+diagnostics bundle from Things Mapper; read `batterystats` for phone A.
 
 **Evaluation.**
 1. Node uplinks sent (node counter or TTS console events) vs. measurements
@@ -383,7 +425,7 @@ diagnostics bundle from Chirp Mapper; read `batterystats` for phone A.
 
 | Requirement | Test cases |
 |---|---|
-| REQ-P-001…008 | TC-SE-03, TC-CA-*, TC-KI-01, TC-CX-05, CI matrix (TDS-11), TC-DS-05 |
+| REQ-P-001…009 | TC-SE-03, TC-CA-*, TC-KI-01, TC-CX-05, CI matrix (TDS-11), TC-DS-05, TC-ED-01 |
 | REQ-F-001…009 | TC-PR-01…10 |
 | REQ-F-010…015 | TC-SE-01…07 |
 | REQ-F-020…028 | TC-IN-01…16 |
@@ -396,18 +438,20 @@ diagnostics bundle from Chirp Mapper; read `batterystats` for phone A.
 | REQ-F-090…092 | TC-AL-01, 02, TC-SE-03 |
 | REQ-F-100…103 | TC-SO-01…05 |
 | REQ-F-110…112 | TC-DS-01…03, TC-IN-06 |
-| REQ-F-120…124 | TC-CA-01…06, TC-F-04 |
+| REQ-F-120…124 | TC-CA-01…06, TC-F-04 (Paid edition) |
 | REQ-F-130…135 | TC-KI-01…07, TC-F-03 |
 | REQ-F-140, 141 | TC-RT-01…03 |
+| REQ-F-150…162 | TC-ED-01…15 |
+| REQ-F-163…167 | TC-SU-01…10 |
 | REQ-NF-001…006 | TC-P-01…05, TC-N-06, TC-F-05 |
 | REQ-NF-010…013 | TC-ST-01, 02, TC-UP-04, TC-IN-10, TC-KI-04 |
 | REQ-NF-020…024 | TC-IN-09, 12, 13, TC-PR-10, TC-DS-01, 02, 04, 06 |
 | REQ-NF-030…034 | TC-IS-05, TC-CX-01, 02, 05, TC-SO-03, TC-CA-05 |
 | REQ-NF-040…044 | CI gates (coverage, lint), review checklist §9 |
 | REQ-NF-050 | TC-DS-03 |
-| REQ-NF-060…062 | TC-DS-05, TC-CX-03, 04, TC-SO-01 |
-| REQ-C-001…009 | TC-DS-06, TC-UP-02, TC-DS-05, TC-CX-04, CI arm64 job |
-| TGT-01…08 | parity checklist (M2.4 review), TC-F-01…05, TC-P-*, CI gates, adapter-guide review |
+| REQ-NF-060…064 | TC-DS-05, TC-CX-03, 04, TC-SO-01, TC-ED-02, TC-ED-12 |
+| REQ-C-001…011 | TC-SU-07, TC-SU-10, TC-DS-06, TC-UP-02, TC-DS-05, TC-CX-04, CI arm64 job, TC-ED-12, review of `app/` for upstream code (REQ-C-009) |
+| TGT-01…09 | parity checklist (M2.4 review), TC-F-01…05, TC-P-*, CI gates, adapter-guide review, store revenue reports (TGT-09) |
 
 ## 9. Review checklists (design and code)
 
@@ -435,11 +479,11 @@ and coverage.
 |---|---|
 | M2.1 Foundation | all U/I tests of TC-IN, TC-RU, TC-PO (non-hardware), TC-ST-01/02/04/06, TC-UP-01…07, TC-RT-01/02; coverage gate |
 | M2.2 Desktop MVP | TC-MA-*, TC-P-02/03 on desktop, TC-SE-01, TC-IS-*, TC-PO-05/06 |
-| M2.3 Android MVP | TC-SE-02…05, TC-PR-*, TC-SO-01/02, TC-ST-07, TC-DS-01…05, TC-P-01/03 on phone |
-| M2.4 Parity | TC-F-01, TC-F-02, TC-F-05, TC-ST-09, TC-SO-03, TGT-01/03 review |
+| M2.3 Android MVP | TC-SE-02…05, TC-PR-*, TC-SO-01/02, TC-ST-07, TC-DS-01…05, TC-P-01/03 on phone, TC-ED-01/02/13 |
+| M2.4 Parity | TC-F-01, TC-F-02, TC-F-05, TC-ST-09, TC-SO-03, TC-ED-15, TC-SU-01…04, 06…08, TGT-01/03 review |
 | M3.1 Kiosk | TC-KI-*, TC-F-03, TC-P-01/03 on Pi |
-| M3.2 Android Auto | TC-CA-*, TC-F-04 |
-| M3.3 Release 1.0 | TC-CX-*, TC-F-06, full regression, TGT-06 |
+| M3.2 Android Auto (Paid) | TC-CA-*, TC-F-04, TC-ED-13 |
+| M3.3 Release 1.0 | TC-CX-*, TC-F-06, TC-ED-*, TC-SU-*, full regression on both editions, TGT-06 |
 
 ## 12. Risks to testing
 

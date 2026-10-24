@@ -1,6 +1,6 @@
 # Contributing Guidelines
 
-Thank you for considering contributing to Chirp Mapper. The project is in
+Thank you for considering contributing to Things Mapper. The project is in
 **phase 1 (design)**: the deliverables are documents, and the most valuable
 contributions right now are reviews, corrections and additions to those
 documents. Code contributions follow in phase 2.
@@ -9,8 +9,8 @@ documents. Code contributions follow in phase 2.
 
 1. **Fork the repository** and clone your fork:
    ```sh
-   git clone https://github.com/<your-user>/Chirp-Mapper.git
-   cd Chirp-Mapper
+   git clone https://github.com/<your-user>/Things-Mapper.git
+   cd Things-Mapper
    ```
 2. The original TTN Mapper app is included as a submodule for reference. It
    is *not* required to work on the design documents; initialise it only when
@@ -46,7 +46,8 @@ documents. Code contributions follow in phase 2.
 
 - Kotlin Multiplatform with Gradle; the build and test commands are
   documented in the TDS and will be mirrored here once the modules exist.
-- Every source file carries `SPDX-License-Identifier: GPL-3.0-only`.
+- Every source file carries `SPDX-License-Identifier: GPL-3.0-only` and the
+  line `Additional permission: see license.md (GPLv3 section 7)`.
 - New behaviour comes with tests in the core module; protocol changes come
   with a recorded fixture message.
 - Keep commits focused. Commit messages follow the
@@ -64,10 +65,20 @@ documents. Code contributions follow in phase 2.
 ## Licence of contributions
 
 By contributing you agree that your contribution is licensed under the
-project licence, the GNU GPL v3.0 (`GPL-3.0-only`) — "inbound = outbound".
+project licence, the GNU GPL v3.0 (`GPL-3.0-only`) with the additional
+permission stated in [license.md](license.md) — "inbound = outbound".
 Do not submit code or text you are not entitled to license under these
 terms (for example, copies of proprietary SDK documentation or code from
 projects with an incompatible licence). See [license.md](license.md).
+
+**Clean implementation.** Do not copy source code from the
+`ttnmapper-android-v3` submodule into `app/`; implement from the design
+documents (REQ-C-009). The clean implementation is what makes the
+project's additional permission for app-store distribution and
+store/platform vendor libraries possible
+([ADR-0007](design/adr/ADR-0007-editions-and-monetisation.md)); code copied
+from the submodule would fall outside it. Pull requests confirm this in the
+checklist.
 
 ## Reporting issues
 

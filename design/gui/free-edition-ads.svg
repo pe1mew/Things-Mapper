@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1640 800" font-family="Helvetica, Arial, sans-serif">
+  <title>Things Mapper — Free edition ad slots: map idle, map while mapping (no ad), sessions, settings with upgrade entry</title>
+  <defs>
+    <style>
+      .frame { fill: #ffffff; stroke: #333; stroke-width: 2; }
+      .chip { fill: #ffffff; stroke: #9aa1aa; stroke-width: 1; }
+      .panel { fill: #f3f4f6; stroke: #9aa1aa; stroke-width: 1; }
+      .ad { fill: #ffffff; stroke: #c7ccd1; stroke-width: 1; }
+      .adimg { fill: #e8eef7; }
+      .t { font-size: 13px; fill: #1b1f23; }
+      .ts { font-size: 11px; fill: #4b5563; }
+      .tl { font-size: 12px; fill: #6b7280; font-weight: bold; }
+      .cap { font-size: 15px; font-weight: bold; fill: #1b1f23; }
+      .note { font-size: 12px; fill: #b3261e; }
+      .ok { fill: #1e8e3e; } .off { fill: #6b7280; }
+      .road { stroke: #c7ccd1; stroke-width: 6; fill: none; }
+      .gap { stroke: #b3261e; stroke-width: 1; stroke-dasharray: 4 3; fill: none; }
+    </style>
+  </defs>
+
+  <!-- ===== Frame 1: Map idle (Free) ===== -->
+  <text x="20" y="30" class="cap">SCR-02 Map — idle (Free)</text>
+  <rect x="20" y="45" width="360" height="640" rx="18" class="frame"/>
+  <rect x="22" y="47" width="356" height="580" fill="#eef1f4"/>
+  <path d="M22 260 L378 320" class="road"/><path d="M140 47 L210 627" class="road"/>
+  <rect x="30" y="55" width="96" height="24" rx="12" class="chip"/><circle cx="42" cy="67" r="4" class="off"/><text x="50" y="71" class="ts">TTS eu1 · off</text>
+  <rect x="132" y="55" width="96" height="24" rx="12" class="chip"/><circle cx="144" cy="67" r="4" class="ok"/><text x="152" y="71" class="ts">GNSS 5 m</text>
+  <rect x="234" y="55" width="96" height="24" rx="12" class="chip"/><circle cx="246" cy="67" r="4" class="off"/><text x="254" y="71" class="ts">upload off</text>
+  <!-- ad slot below chips -->
+  <rect x="30" y="88" width="340" height="58" rx="8" class="ad"/>
+  <rect x="34" y="92" width="332" height="50" rx="4" class="adimg"/>
+  <text x="40" y="106" class="tl">Sponsor</text><text x="110" y="124" class="t">Vendor X — LoRaWAN gateways</text>
+  <text x="380" y="118" class="note" text-anchor="end"> </text>
+  <!-- start control -->
+  <circle cx="200" cy="600" r="36" fill="#0e7c86"/><polygon points="190,584 190,616 216,600" fill="#ffffff"/>
+  <text x="200" y="650" class="ts" text-anchor="middle">Start</text>
+  <rect x="22" y="627" width="356" height="56" fill="#ffffff" stroke="#c7ccd1"/>
+  <g class="ts" text-anchor="middle"><text x="66" y="668" fill="#0e7c86">Map</text><text x="155" y="668">Drive</text><text x="245" y="668">Sessions</text><text x="334" y="668">More</text></g>
+  <text x="30" y="710" class="note">Banner floats below the chips, far from Start;</text>
+  <text x="30" y="726" class="note">it collapses as soon as Start is pressed.</text>
+
+  <!-- ===== Frame 2: Map running (Free) ===== -->
+  <text x="420" y="30" class="cap">SCR-02 Map — mapping (Free): no ad</text>
+  <rect x="420" y="45" width="360" height="640" rx="18" class="frame"/>
+  <rect x="422" y="47" width="356" height="580" fill="#eef1f4"/>
+  <path d="M422 260 L778 320" class="road"/><path d="M540 47 L610 627" class="road"/>
+  <rect x="430" y="55" width="96" height="24" rx="12" class="chip"/><circle cx="442" cy="67" r="4" class="ok"/><text x="450" y="71" class="ts">TTS eu1 · up</text>
+  <rect x="532" y="55" width="96" height="24" rx="12" class="chip"/><circle cx="544" cy="67" r="4" class="ok"/><text x="552" y="71" class="ts">GNSS 4 m</text>
+  <rect x="634" y="55" width="116" height="24" rx="12" class="chip"/><circle cx="646" cy="67" r="4" class="off"/><text x="654" y="71" class="ts">9 s · −98 dBm · 2 GW</text>
+  <g stroke="#1b1f23" stroke-width="1">
+    <circle cx="480" cy="330" r="6" fill="#ff7f00" opacity="0.7"/><circle cx="520" cy="350" r="6" fill="#ffff00" opacity="0.7"/>
+    <circle cx="560" cy="372" r="6" fill="#00ff00" opacity="0.7"/><circle cx="600" cy="392" r="6" fill="#00ffff" opacity="0.7"/>
+  </g>
+  <polygon points="622,400 614,420 622,415 630,420" fill="#0e7c86" stroke="#ffffff"/>
+  <circle cx="600" cy="600" r="36" fill="#d9480f"/><rect x="588" y="588" width="24" height="24" fill="#ffffff"/>
+  <text x="600" y="650" class="ts" text-anchor="middle">Stop (running 00:12)</text>
+  <rect x="422" y="627" width="356" height="56" fill="#ffffff" stroke="#c7ccd1"/>
+  <g class="ts" text-anchor="middle"><text x="466" y="668" fill="#0e7c86">Map</text><text x="555" y="668">Drive</text><text x="645" y="668">Sessions</text><text x="734" y="668">More</text></g>
+  <text x="430" y="710" class="note">No ads on the map or drive view while a</text>
+  <text x="430" y="726" class="note">session runs; never in notifications or the car.</text>
+
+  <!-- ===== Frame 3: Sessions (Free) ===== -->
+  <text x="820" y="30" class="cap">SCR-05 Sessions (Free)</text>
+  <rect x="820" y="45" width="360" height="640" rx="18" class="frame"/>
+  <text x="836" y="78" class="t" font-weight="bold" font-size="18">Sessions</text>
+  <g>
+    <rect x="832" y="92" width="336" height="64" rx="10" class="panel"/><text x="844" y="114" class="t" font-weight="bold">Today 14:02 · 00:42</text><text x="844" y="134" class="ts">TTS · 128 pts · 3 no pos</text><rect x="1040" y="126" width="116" height="8" fill="#1e8e3e"/><rect x="1140" y="126" width="16" height="8" fill="#b26a00"/>
+    <rect x="832" y="164" width="336" height="64" rx="10" class="panel"/><text x="844" y="186" class="t" font-weight="bold">Yesterday 09:15 · 01:10</text><text x="844" y="206" class="ts">CS4 · 342 pts · 0 no pos</text><rect x="1040" y="198" width="116" height="8" fill="#1e8e3e"/>
+    <rect x="832" y="236" width="336" height="64" rx="10" class="panel"/><text x="844" y="258" class="t" font-weight="bold">21 Oct 17:40 · 00:25</text><text x="844" y="278" class="ts">TTS · 77 pts · 1 no pos</text><rect x="1040" y="270" width="116" height="8" fill="#1e8e3e"/>
+  </g>
+  <!-- ad slot above bottom nav -->
+  <rect x="830" y="561" width="340" height="58" rx="8" class="ad"/>
+  <rect x="834" y="565" width="332" height="50" rx="4" class="adimg"/>
+  <text x="840" y="579" class="tl">Sponsor</text><text x="910" y="597" class="t">Banner 320×50 dp</text>
+  <rect x="822" y="627" width="356" height="56" fill="#ffffff" stroke="#c7ccd1"/>
+  <g class="ts" text-anchor="middle"><text x="866" y="668">Map</text><text x="955" y="668">Drive</text><text x="1045" y="668" fill="#0e7c86">Sessions</text><text x="1134" y="668">More</text></g>
+  <text x="830" y="710" class="note">Secondary screens: one banner at the bottom,</text>
+  <text x="830" y="726" class="note">above the navigation; collapses on failure.</text>
+
+  <!-- ===== Frame 4: Settings with upgrade entry (Free) ===== -->
+  <text x="1220" y="30" class="cap">SCR-09 Settings (Free) — upgrade entry</text>
+  <rect x="1220" y="45" width="360" height="640" rx="18" class="frame"/>
+  <text x="1236" y="78" class="t" font-weight="bold" font-size="18">Settings</text>
+  <rect x="1232" y="92" width="336" height="72" rx="10" fill="#0e7c86" opacity="0.10" stroke="#0e7c86"/>
+  <text x="1248" y="120" class="t" font-weight="bold">Get the ad-free edition</text>
+  <text x="1248" y="140" class="ts">Includes Android Auto · one-time purchase</text>
+  <text x="1548" y="132" class="t" text-anchor="end">›</text>
+  <g class="t">
+    <text x="1236" y="196" class="tl">PROFILES</text><text x="1236" y="218">My mapper on TTN (active)</text>
+    <text x="1236" y="250" class="tl">MAPPING</text><text x="1236" y="272">Freshness window · 10 s</text>
+    <text x="1236" y="304" class="tl">MAP</text><text x="1236" y="326">Base map · OSM greyscale</text>
+    <text x="1236" y="358" class="tl">UPLOAD</text><text x="1236" y="380">Contribute to ttnmapper.org · on</text>
+    <text x="1236" y="412" class="tl">SPONSORS</text><text x="1236" y="434">Become a sponsor · About sponsor banners</text>
+    <text x="1236" y="466" class="tl">ABOUT</text><text x="1236" y="488">Things Mapper 0.5.0 · Free edition</text>
+  </g>
+  <rect x="1230" y="561" width="340" height="58" rx="8" class="ad"/>
+  <rect x="1234" y="565" width="332" height="50" rx="4" class="adimg"/>
+  <text x="1240" y="579" class="tl">Sponsor</text><text x="1310" y="597" class="t">Banner 320×50 dp</text>
+  <rect x="1222" y="627" width="356" height="56" fill="#ffffff" stroke="#c7ccd1"/>
+  <g class="ts" text-anchor="middle"><text x="1266" y="668">Map</text><text x="1355" y="668">Drive</text><text x="1445" y="668">Sessions</text><text x="1534" y="668" fill="#0e7c86">More</text></g>
+  <text x="1230" y="710" class="note">The upgrade entry exists only here and in About;</text>
+  <text x="1230" y="726" class="note">no pop-ups, no reminders while mapping.</text>
+
+  <text x="20" y="770" class="ts">The Paid edition shows the same screens without slots and without the upgrade entry, and adds Android Auto (SCR-40/41). Desktop and kiosk builds have no ads.</text>
+</svg>

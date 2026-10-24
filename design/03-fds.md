@@ -5,6 +5,9 @@ Status: **Draft**
 | Rev | Date | Author | Change |
 |---|---|---|---|
 | 0.1 | 2026-09-11 | R. Welling (with Claude) | First complete version |
+| 0.2 | 2026-10-24 | R. Welling (with Claude) | Project renamed to Things Mapper; FDS-17 editions and advertising; car mode Paid-only; onboarding and settings additions |
+| 0.3 | 2026-10-24 | R. Welling (with Claude) | Sponsor catalogue is the only ad source (OP-7); licence route L-A (OP-8); no ad consent |
+| 0.4 | 2026-10-24 | R. Welling (with Claude) | Free start screen; cost awareness and voluntary support (ADR-0008) |
 
 Related: [02 Requirements](02-requirements.md) (every function lists the
 requirements it realises), [04 GUI design](04-gui-design.md) (screens
@@ -52,7 +55,7 @@ Two principles run through every function:
 
 ```mermaid
 flowchart TB
-    CM[Chirp Mapper]
+    CM[Things Mapper]
     CM --> F1[FDS-1 Profiles and linking]
     CM --> F2[FDS-2 Session control]
     CM --> F3[FDS-3 Ingest]
@@ -69,6 +72,8 @@ flowchart TB
     CM --> F14[FDS-14 Car mode]
     CM --> F15[FDS-15 Kiosk mode]
     CM --> F16[FDS-16 Replay tool]
+    CM --> F17[FDS-17 Editions and advertising]
+    CM --> F18[FDS-18 Cost awareness and support]
 ```
 
 ### 2.3 Main flow
@@ -296,7 +301,7 @@ expected even for `success:false`.
 | `accuracy_source` | string | position.source | `gps`, `fused`, `gpsd`, `nmea`, … |
 | `experiment` | string | session.experimentName | omitted when not an experiment |
 | `userid` | string | installation id (UUID) | |
-| `useragent` | string | `ChirpMapper/<version> (<platform>; <os>)` | format subject to OP-1 |
+| `useragent` | string | `ThingsMapper/<version> (<platform>; <os>)` | format subject to OP-1 |
 
 Speed and bearing are **not** part of the contract and are not sent.
 
@@ -344,7 +349,7 @@ optionally one `LineString` per reception with a valid gateway location
 
 ```json
 {
-  "chirpmapper_profile": 1,
+  "thingsmapper_profile": 1,
   "name": "My node on TTN eu1",
   "type": "tts_v3",
   "host": "eu1.cloud.thethings.network",
@@ -361,8 +366,8 @@ optionally one `LineString` per reception with a valid gateway location
 `type` is `tts_v3` or `chirpstack_v4`; ChirpStack profiles carry
 `application_id` (UUID), `device_ids` (EUIs) and optional `username`.
 
-**Provisioning file** (kiosk, `/etc/chirpmapper/config.toml` or
-`~/.config/chirpmapper/config.toml`):
+**Provisioning file** (kiosk, `/etc/thingsmapper/config.toml` or
+`~/.config/thingsmapper/config.toml`):
 
 ```toml
 [app]
@@ -395,7 +400,7 @@ tls = true
 application_id = "my-app"
 tenant_id = "ttn"
 device_ids = ["mapper-01"]
-api_key_file = "/etc/chirpmapper/secrets/ttn-eu1.key"   # or api_key_env = "CHIRPMAPPER_TTN_KEY"
+api_key_file = "/etc/thingsmapper/secrets/ttn-eu1.key"   # or api_key_env = "THINGSMAPPER_TTN_KEY"
 active = true
 ```
 
@@ -494,7 +499,7 @@ REQ-F-013, REQ-NF-012.
 
 #### FDS-3.1 Link management
 *Behaviour.* One MQTT connection per session (MQTT 3.1.1, clean session,
-QoS 0 subscriptions, keep-alive 30 s, client id `chirpmapper-<random>`),
+QoS 0 subscriptions, keep-alive 30 s, client id `thingsmapper-<random>`),
 TLS per profile, credentials from secure storage. On loss the link
 reconnects with exponential backoff 1, 2, 4 … 60 s (± 20 % jitter) for as
 long as the session is active; each attempt and outcome is a diagnostic
@@ -634,7 +639,7 @@ Streams the rows of §3.5 for the selected sessions to the destination chosen
 through the platform (Android: `ACTION_CREATE_DOCUMENT` with MIME
 `text/csv`, plus share sheet; desktop: save dialog; kiosk: export folder or
 first mounted removable volume). File name
-`chirpmapper-<session-start-UTC>.csv` or `chirpmapper-all-<now-UTC>.csv`.
+`thingsmapper-<session-start-UTC>.csv` or `thingsmapper-all-<now-UTC>.csv`.
 Progress and cancel for large exports. *Realises* REQ-F-052, REQ-F-053.
 
 #### FDS-7.2 GeoJSON
@@ -642,7 +647,7 @@ As FDS-7.1 with §3.6; MIME `application/geo+json`. *Realises* REQ-F-052.
 
 #### FDS-7.3 Import (optional)
 Reads a CSV produced by TTN Mapper v3 (its 41 legacy columns, header
-detected) or by Chirp Mapper, creates a session per distinct `Session`
+detected) or by Things Mapper, creates a session per distinct `Session`
 value flagged *imported* (never uploaded), and shows it on the map.
 *Realises* REQ-F-054.
 
@@ -665,7 +670,7 @@ greyscale (same tiles, desaturated at render time), night (same tiles,
 inverted/darkened at render time), and *custom XYZ* (URL template with
 `{z}/{x}/{y}` and `{s}` subdomains, attribution text, min/max zoom, terms
 acknowledged). Every tile request carries
-`User-Agent: ChirpMapper/<version> (+https://github.com/pe1mew/Chirp-Mapper)`;
+`User-Agent: ThingsMapper/<version> (+https://github.com/pe1mew/Things-Mapper)`;
 at most 2 concurrent requests per host; tiles are cached on disk (LRU,
 default 200 MB phone, 1 GB desktop/Pi, TTL 7 days honouring `Cache-Control`);
 the attribution of the active source is always visible. No imagery preset is
@@ -758,7 +763,7 @@ focus and silent mode. *Realises* REQ-F-090, REQ-F-091.
 #### FDS-12.1 Onboarding
 ```mermaid
 flowchart LR
-    W[Welcome:<br/>what Chirp Mapper does] --> D[Your data:<br/>what is stored locally,<br/>what ttnmapper.org receives]
+    W[Welcome:<br/>what Things Mapper does] --> D[Your data:<br/>what is stored locally,<br/>what ttnmapper.org receives]
     D --> C{Contribute to<br/>ttnmapper.org?}
     C -->|yes| P[Permissions with rationale:<br/>precise location, notifications]
     C -->|not now| P
@@ -768,7 +773,9 @@ flowchart LR
 ```
 Onboarding runs once; every step is reachable again from settings. On
 desktop/kiosk with a provisioning file the steps that the file answers are
-skipped. *Realises* REQ-F-100, REQ-NF-023.
+skipped. No edition has an ad-consent step (FDS-17.4). In the Free edition
+the *Welcome* step also carries the start-screen notice (FDS-17.5).
+*Realises* REQ-F-100, REQ-NF-023.
 
 #### FDS-12.2 Settings catalogue
 | Group | Settings |
@@ -780,8 +787,10 @@ skipped. *Realises* REQ-F-100, REQ-NF-023.
 | Alerts & sounds | packet sound (+ picker on Android), vibration, alert thresholds |
 | Display | theme light/dark/auto, keep screen on, units |
 | Diagnostics | open diagnostics, export bug report, log level |
-| About | version, licence (GPL-3.0), third-party notices, privacy page, links |
-*Realises* REQ-F-101, REQ-F-102, REQ-F-103, REQ-F-087.
+| About | version, edition, licence (GPL-3.0), third-party notices, privacy page, links |
+| Edition | Free: *Get the ad-free edition with Android Auto*; Paid: *Import from Things Mapper (Free)* (FDS-17.5); both editions: *Become a sponsor* and *About sponsor banners* in About |
+| Support | *Support Things Mapper* (FDS-18.5), *What Things Mapper costs* (FDS-18.2), supporter status, *Restore purchases* and *Manage subscription* (store builds), *What's new* with *Why this update* (FDS-18.3) |
+*Realises* REQ-F-101, REQ-F-102, REQ-F-103, REQ-F-087, REQ-F-157, REQ-F-158, REQ-F-163…166.
 
 ### FDS-13 Diagnostics
 
@@ -801,6 +810,10 @@ Profiles appear with host and ids only. *Realises* REQ-F-111, REQ-F-112,
 REQ-NF-021.
 
 ### FDS-14 Car mode (Android Auto)
+
+Available in the **Paid edition only** (REQ-F-160, FDS-17.1). The Free
+edition contains no car service and never appears on a car screen, so no
+advertisement can reach the car.
 
 #### FDS-14.1 Templates
 Main screen: `MapWithContentTemplate` — the app draws the map (points,
@@ -841,7 +854,7 @@ page (`http://localhost:8787/status`, read-only JSON and HTML) when enabled.
 *Realises* REQ-F-133, REQ-F-135, REQ-NF-012.
 
 ### FDS-16 Replay tool
-Command-line tool `chirpmapper-replay` with: a *recording* mode that
+Command-line tool `thingsmapper-replay` with: a *recording* mode that
 subscribes to a profile's topics and writes messages with receipt timestamps
 to a JSON-lines file (redacting nothing — recordings are the user's own
 data, but the tool warns that they contain device ids); a *publish* mode that
@@ -850,6 +863,228 @@ loop); a *track* mode that serves a GPX/NMEA track as a gpsd-compatible
 TCP stream (`TPV`/`SKY` JSON) in step with the recording. The in-app
 `replay` position source and a *demo* profile (local broker) use the same
 files. *Realises* REQ-F-140, REQ-F-141.
+
+### FDS-17 Editions and advertising
+
+Decision record: [ADR-0007](adr/ADR-0007-editions-and-monetisation.md).
+
+#### FDS-17.1 Editions
+The edition is a build-time constant; there is no runtime unlock.
+
+| Aspect | Free | Paid | Desktop / kiosk |
+|---|---|---|---|
+| Functions FDS-1…13, 15, 16 | all | all | all of the platform |
+| FDS-14 Car mode (Android Auto) | — (no car service) | ✔ | — |
+| Advertisements (FDS-17.2–17.4) | ✔ | — | — |
+| Start screen (FDS-17.5) | ✔ | — | — |
+| Upgrade entry (FDS-17.5) | ✔ | — | — |
+| Import from Free (FDS-17.5) | — | ✔ | — |
+| Android application id | `nl.pe1mew.thingsmapper` | `nl.pe1mew.thingsmapper.paid` | — |
+
+*Realises* REQ-F-150…152, REQ-F-160, REQ-F-161.
+
+#### FDS-17.2 Ad slots and visibility
+An ad slot is a reserved banner area on a screen. A slot is **visible** only
+when all of the following hold:
+
+1. the edition is Free;
+2. the screen has a slot (table below);
+3. on the map screen: the session state is *Idle* or *Error* (not
+   *Starting*, *Running* or *Stopping*);
+4. no dialog, bottom sheet or onboarding step is shown;
+5. the sponsor catalogue has a valid banner for the slot (FDS-17.3);
+6. the device is online.
+
+An invisible slot takes no space (it collapses); it never shows a
+placeholder, error text or progress indicator.
+
+| Screen | Slot | Visible while a session runs |
+|---|---|---|
+| SCR-02 Map (phone) | banner directly below the indicator chips, full width | **no** — collapses on *Start* |
+| SCR-03 Drive view | none | — |
+| SCR-04 Statistics, SCR-05 Sessions, SCR-06 Session detail, SCR-07 Profiles, SCR-09 Settings, SCR-10 Diagnostics, SCR-11 About | banner at the bottom of the content, above the bottom navigation | yes |
+| SCR-20 expanded layout (Android tablets) | banner at the top of the side panel on the *Statistics* and *Gateways* tabs; on the *Live* tab only while no session runs | as left |
+| SCR-01 Onboarding, SCR-08 Profile editor, SCR-12 Gateway sheet, SCR-13 Alerts & dialogs, SCR-14 Free start screen, SCR-15 Cost page, SCR-16 Thank-you card, SCR-17 Support | none | — |
+| Notifications, lock screen, widgets | none | — |
+| Car screens SCR-40/41 | not present in the Free edition | — |
+
+Spacing: a slot keeps ≥ 48 dp from the Start/Stop control and from the map
+controls and never covers the map attribution. Formats: banners only
+(320×50 dp phone, 728×90 dp tablet); no interstitial, full-screen, rewarded,
+video or audio ads. *Realises* REQ-F-153, REQ-F-156.
+
+#### FDS-17.3 Ad sources
+**Sponsor catalogue — the only ad source (OP-7).** A JSON catalogue and a
+detached signature are published on the project's static site:
+
+```
+https://pe1mew.github.io/Things-Mapper/ads/v1/catalogue.json
+https://pe1mew.github.io/Things-Mapper/ads/v1/catalogue.json.sig   (Ed25519, public key built into the app)
+```
+
+```json
+{
+  "thingsmapper_ads": 1,
+  "generated": "2026-11-01T00:00:00Z",
+  "expires": "2026-12-31T23:59:59Z",
+  "banners": [
+    {
+      "id": "vendor-x-2026q4",
+      "sponsor": "Vendor X",
+      "image_320x50": "https://pe1mew.github.io/Things-Mapper/ads/v1/img/vendor-x-320x50.webp",
+      "image_728x90": "https://pe1mew.github.io/Things-Mapper/ads/v1/img/vendor-x-728x90.webp",
+      "alt": { "en": "Vendor X LoRaWAN gateways", "nl": "Vendor X LoRaWAN-gateways" },
+      "target": "https://vendor-x.example/lorawan",
+      "languages": ["en", "nl"],
+      "valid_from": "2026-11-01", "valid_to": "2026-12-31",
+      "weight": 2
+    }
+  ]
+}
+```
+
+Rules: the catalogue is fetched at most once per 24 h and only when a slot
+becomes visible; a catalogue with an invalid signature or past `expires` is
+discarded (no ads); images are static PNG/WebP ≤ 100 kB, fetched once and
+cached; banners are chosen locally by language, validity and weight and
+rotate every 60 s while a slot is visible; a tap opens `target` (https only)
+in the external browser with `utm_source=thingsmapper&utm_medium=app`
+appended. Requests carry no identifier (plain GET with the standard
+User-Agent); impressions and clicks are not reported.
+
+Sponsor content rules (published on the *Become a sponsor* page and checked
+by the maintainer before a banner enters the catalogue): relevant to
+LoRaWAN, IoT, radio, mapping or the open-source community; static image, no
+animation, no tracking pixels or redirect chains; no political, gambling or
+adult content; the target page is reachable over https. *About* links to
+the *Become a sponsor* page.
+
+*Realises* REQ-F-154, REQ-F-159.
+
+#### FDS-17.4 Ad consent
+No ad consent is needed and none is asked: the sponsor catalogue reads
+and stores nothing on the device for advertising (the cached catalogue and
+images are a functional cache without identifiers) and no request carries an
+identifier. *About → About sponsor banners* explains this in two sentences.
+REQ-F-155 is withdrawn (OP-7).
+
+#### FDS-17.5 Start screen, upgrade entry and import
+*Free — start screen (SCR-14):* shown when the app UI is started from the
+launcher (cold start of the task). Not shown when the app returns from the
+background, when it is opened from the mapping notification, after a
+configuration change or process restore, or while a session runs. On the
+very first start the onboarding's *Welcome* step (FDS-12.1) carries the same
+notice instead. Content: *Things Mapper — Free*; what the Paid edition adds
+(no sponsor banners, no start screen, Android Auto) and its price (€6 once,
+from the funding data's `paid_price` in the user's currency, otherwise "a
+one-time purchase"); the buttons *Buy the Paid edition* (opens the Paid
+listing) and *Continue with Free*, both active immediately; a link to the
+cost page (FDS-18.2). No sponsor or third-party content.
+
+*Free — upgrade entry:* *Settings* and *About* contain *Get the ad-free
+edition with Android Auto*, which opens the Paid edition's store listing.
+Besides the start screen the Paid edition is promoted nowhere else — not on
+the map, drive view, notifications or in other pop-ups.
+
+*Paid:* at first start, if the Free edition is installed on the device, a
+dialog offers *Import from Things Mapper (Free)*; the same action is in
+*Settings*. The import copies, through a provider that only apps signed with
+the same key can use:
+
+| Data | Rule |
+|---|---|
+| Profiles | without secrets; the profile list marks profiles that need their API key or password re-entered |
+| Sessions, measurements, receptions, gateways | complete; sessions keep their ids, so a repeated import skips what exists |
+| Pending uploads | moved: the Paid edition re-creates them in its outbox, then tells the Free edition to mark them *transferred* so they are not sent twice |
+| Settings, map state, installation id | copied (the installation id is kept so the contributions stay linked to the same `userid`) |
+
+A summary is shown at the end; the user is advised to uninstall the Free
+edition. On iOS (phase 4) the same import uses a shared App Group
+container. *Realises* REQ-F-157, REQ-F-158, REQ-F-162.
+
+#### FDS-17.6 Parity guarantee
+Every function of this document except FDS-14 and FDS-17 behaves
+identically in both editions, including data formats, uploads, exports and
+diagnostics. The system test suite runs against both editions (TC-ED-01).
+*Realises* REQ-F-151.
+
+### FDS-18 Cost awareness and support
+
+Decision record: [ADR-0008](adr/ADR-0008-cost-awareness-and-support.md);
+figures: [08 Costs and funding](08-costs-and-funding.md).
+
+#### FDS-18.1 Funding data
+The signed funding file of doc 08 §6 is used by every build (Free, Paid,
+desktop, kiosk). It is fetched at most once per 24 h and only when the cost
+page, the start-screen price line or the thank-you card needs it; the
+signature is verified with the built-in key (the same as for the sponsor
+catalogue); the file is cached with its `updated` date; the request carries
+no identifier. Figures older than 120 days are shown with the note
+*figures may be outdated*. *Realises* REQ-F-167.
+
+#### FDS-18.2 Cost page (SCR-15)
+*What Things Mapper costs* shows: this year's costs as a total with the
+recurring items and the year's share of investments; income so far by
+source (Paid sales, supporters, sponsors) as one bar with the covered
+percentage; investments still to recover; the note that development time is
+volunteered; the date of the figures; the buttons *Support Things Mapper*
+(FDS-18.5) and *Become a sponsor*; a link to doc 08. Offline without a
+cached file it shows a static explanation of the cost items without
+amounts. Reachable from *About*, the *Support* settings group, the Free start
+screen and the thank-you card. *Realises* REQ-F-163.
+
+#### FDS-18.3 Why this update
+Every release note has a mandatory *Why this update* line naming the
+mandatory platform work in the release, or "feature release" when there is
+none (template in the release process; CI refuses a release whose store
+changelog lacks it). *About → What's new in <version>* shows the notes of
+the installed version including that line. There is no dialog after an
+update. *Realises* REQ-F-164.
+
+#### FDS-18.4 Yearly thank-you card (SCR-16)
+Trigger: the user stops a session (FDS-2.1) while the app is in the
+foreground. The card is shown when all of the following hold:
+
+1. at least 30 days since installation and at least 3 sessions;
+2. at least 12 months since the card was last shown (or since installation);
+3. the user is not a supporter (FDS-18.5);
+4. the speed of the last fix is below 5 km/h, or unknown;
+5. it is not the car screen and no other dialog is open.
+
+Content: *Thank you for mapping!*, the user's figures of the last 12 months
+from the local database (sessions, distance, packets, unique gateways), one
+line from the funding data (*Keeping Things Mapper in the stores costs about
+€X this year; Y % is covered so far*; without numbers when no funding data is
+available), and the buttons *Support* (opens SCR-17) and *Not now*. Either
+button closes the card and restarts the 12-month timer. The card is never
+shown while a session runs and never at app start. *Realises* REQ-F-165.
+
+#### FDS-18.5 Voluntary support (SCR-17)
+**Store builds** offer these products through the store's billing:
+
+| Product id | Type | Price (decided 2026-10-24) |
+|---|---|---|
+| `support_yearly` | auto-renewing subscription, one year | €5 |
+| `tip_small`, `tip_medium`, `tip_large` | consumable | €2, €5, €10 |
+
+SCR-17 lists them with the store's localised prices; a purchase opens the
+store's purchase sheet; on success the purchase is acknowledged (tips are
+consumed), a thank-you message appears and the user becomes a supporter.
+Supporter = an active subscription, or a tip within the last 12 months.
+Effects: the badge *Supporter — thank you* in *About* and no thank-you card;
+**nothing else changes** — no function is unlocked, and the Free edition
+keeps its banners and start screen (the Paid edition removes those).
+*Restore purchases* is in settings; *Manage subscription* opens the store's
+subscription page. Purchases are verified locally through the store
+library; there is no Things Mapper server.
+
+**Other builds** (`foss` variants, desktop, kiosk): SCR-17 shows the same
+explanation and one button that opens the maintainer's GitHub Sponsors page
+in the browser; tapping it records a local date that keeps the thank-you
+card away for 12 months.
+
+Store builds never show a link to outside payment. *Realises* REQ-F-166,
+REQ-C-011.
 
 ## 5. State machines
 
@@ -932,6 +1167,10 @@ stateDiagram-v2
 | Storage full / DB error | write failure | Session → Error with reason; export offered | Free space |
 | Permission revoked (Android) | callback | Session stops with notification; main screen explains | Re-grant |
 | Provisioning file error | parse at start | Start screen with line number | Fix file |
+| Ad cannot be loaded (Free) | catalogue unavailable, expired or signature invalid; offline | slot collapses; nothing is shown | automatic at the next visible period |
+| Import from Free fails (Paid) | provider unavailable or data error | dialog with reason; nothing partially imported for a session | retry from settings; fallback export/import files |
+| Purchase cancelled or failed | store billing result | store's own message; nothing changes in the app | user retries |
+| Funding data unavailable or invalid | fetch/signature failure | cost page shows cached figures with their date, or the explanation without amounts; card without numbers | automatic at the next fetch |
 
 ## 7. Traceability (function → requirements)
 
@@ -950,9 +1189,11 @@ stateDiagram-v2
 | FDS-11 | REQ-F-090, 091 |
 | FDS-12.1–12.2 | REQ-F-087, 100…103, REQ-NF-023 |
 | FDS-13.1–13.2 | REQ-F-110…112, REQ-NF-021, REQ-NF-050 |
-| FDS-14.1–14.2 | REQ-F-120…123, REQ-NF-032 |
+| FDS-14.1–14.2 | REQ-F-120…123, REQ-F-160, REQ-NF-032 |
 | FDS-15.1–15.3 | REQ-F-130…135, REQ-NF-012 |
 | FDS-16 | REQ-F-140, 141 |
+| FDS-17.1–17.6 | REQ-F-150…162, REQ-NF-022, REQ-NF-060, REQ-NF-063, REQ-NF-064 |
+| FDS-18.1–18.5 | REQ-F-163…167, REQ-C-011, REQ-NF-060 |
 
 Requirements not realised by a function: REQ-P-* (platforms — GUI design and
 TDS), REQ-NF-001/003/004/005 (performance — TDS and test plan),

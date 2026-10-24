@@ -1,6 +1,6 @@
 # documentation/
 
-End-user documentation of Chirp Mapper — written alongside the
+End-user documentation of Things Mapper — written alongside the
 implementation (phase 2 and 3). Planned content:
 
 | Document | Audience | Phase |

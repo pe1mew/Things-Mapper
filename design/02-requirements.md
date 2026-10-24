@@ -5,11 +5,17 @@ Status: **Draft**
 | Rev | Date | Author | Change |
 |---|---|---|---|
 | 0.1 | 2026-09-11 | R. Welling (with Claude) | First complete set, derived from the evaluation |
+| 0.2 | 2026-10-24 | R. Welling (with Claude) | Project renamed to Things Mapper; editions and monetisation (ADR-0007): Free with ads, Paid without ads, Android Auto Paid-only; new §6.16, REQ-P-009, REQ-NF-063/064, REQ-C-010, TGT-09, OP-7…OP-10 |
+| 0.3 | 2026-10-24 | R. Welling (with Claude) | OP-7 decided (sponsor catalogue only), OP-8 decided (route L-A, additional permission in license.md); REQ-F-155 withdrawn, REQ-F-159 changed |
+| 0.4 | 2026-10-24 | R. Welling (with Claude) | Free start screen (REQ-F-162); §6.17 cost awareness and voluntary support (REQ-F-163…167, ADR-0008); Paid price €6; REQ-C-011 payment rules; OP-11 Apple investment; hobby non-goal; doc 08 |
 
 Related: [01 Evaluation](01-evaluation.md) (rationale `EVAL-nn`),
 [03 FDS](03-fds.md), [05 TDS](05-tds.md), [06 Test plan](06-test-plan.md),
 [ADR-0002 stack](adr/ADR-0002-technology-stack.md),
-[ADR-0004 car platform](adr/ADR-0004-car-platform.md).
+[ADR-0004 car platform](adr/ADR-0004-car-platform.md),
+[ADR-0007 editions](adr/ADR-0007-editions-and-monetisation.md),
+[ADR-0008 cost awareness](adr/ADR-0008-cost-awareness-and-support.md),
+[08 Costs and funding](08-costs-and-funding.md).
 
 Conventions: see [README](README.md#conventions). *shall* = mandatory,
 *should* = expected, *may* = optional; priority M/S/C/W (MoSCoW).
@@ -20,14 +26,14 @@ Conventions: see [README](README.md#conventions). *shall* = mandatory,
 
 ### 1.1 Purpose
 
-This document defines *what* Chirp Mapper has to do and how well, for all
+This document defines *what* Things Mapper has to do and how well, for all
 target platforms, as the agreed basis for the functional design (FDS), the
 GUI design, the technical design (TDS), the test plan and the implementation
 plan. It is the single place where scope is decided.
 
 ### 1.2 Product vision
 
-> Chirp Mapper turns a LoRaWAN mapping device plus any device with a GNSS
+> Things Mapper turns a LoRaWAN mapping device plus any device with a GNSS
 > receiver — a phone, a car display, a Raspberry Pi behind the windscreen —
 > into a coverage surveyor that shows the network as it is heard, keeps every
 > measurement safe, and contributes it to the community map when the user
@@ -35,7 +41,7 @@ plan. It is the single place where scope is decided.
 
 ### 1.3 Relationship to TTN Mapper
 
-Chirp Mapper is a remake of the TTN Mapper Android app (GPL-3.0) and a
+Things Mapper is a remake of the TTN Mapper Android app (GPL-3.0) and a
 *client* of the TTN Mapper platform: it uploads measurements to the
 ttnmapper.org ingress API in the format that platform expects and shows the
 platform's coverage tiles. It does not replace any server-side component and
@@ -58,6 +64,7 @@ mapping device on one network server.
 | **Private network operator** (ChirpStack v4, private TTS tenant) | Survey own network, keep data local | ChirpStack v4 support, TLS, per-profile upload opt-out, complete exports |
 | **Fixed-installation builder** (Raspberry Pi + touch display + GNSS) | Dedicated device without keyboard | Kiosk mode, config file provisioning, gpsd/serial GNSS, resilience to power/network loss |
 | **Maintainer / contributor** | Sustainable, testable code base | Layered architecture, tests, CI, one core for all platforms, room for iOS |
+| **Maintainer as publisher** (hobby, not a living) | Cover the money costs of development and publication — store accounts, Android and Apple test hardware, Android Auto bench, Raspberry Pi kit (doc 08) — and make users aware of them | Free edition with sponsor banners and a start screen, Paid edition (€6 once) without both and with Android Auto, cost page, yearly thank-you card, voluntary support; no paid services (ADR-0007, ADR-0008) |
 | **TTN Mapper platform (JP Meijers)** — external | Data quality and server load | Contract compliance, identifying user agent, retry discipline |
 | **Map data providers** (OpenStreetMap, ttnmapper.org tiles) — external | Fair use | Attribution, caching, identifying user agent |
 
@@ -65,7 +72,7 @@ mapping device on one network server.
 
 ```mermaid
 flowchart LR
-    subgraph Chirp Mapper
+    subgraph Things Mapper
         CORE[Core: pipeline, rules, storage, queue]
         SH1[Phone shell]
         SH2[Car shell]
@@ -105,10 +112,11 @@ provisioning.
 
 | Item | Reason |
 |---|---|
-| iOS shell | Deferred; architecture keeps it possible (REQ-P-005) |
+| iOS shell | Deferred to phase 4; architecture keeps it possible (REQ-P-005); its editions are specified now (REQ-P-009) |
+| Feature unlocks, paid features, commercial support or services | Hobby project: the editions differ only in ads, the start screen and Android Auto (§6.16); voluntary support (§6.17) unlocks nothing; no paid support, consultancy or custom builds (ADR-0008 D6) |
 | TTN v2, Helium, other network servers | TTN v2 is gone; others via the adapter extension point later |
 | Downlinks, device configuration, payload decoding | Not needed for coverage mapping |
-| Server-side components, own coverage backend | Chirp Mapper is a client of ttnmapper.org |
+| Server-side components, own coverage backend | Things Mapper is a client of ttnmapper.org |
 | User accounts, cloud sync between devices | Privacy and complexity; exports cover the need |
 | Android Automotive OS build | Decided for Android Auto first ([ADR-0004](adr/ADR-0004-car-platform.md)); the car module is written so an AAOS build is a packaging task |
 
@@ -117,13 +125,14 @@ provisioning.
 | ID | Requirement | Prio | Rationale / source |
 |---|---|---|---|
 | REQ-P-001 | The Android application shall support Android 8.0 (API 26) and newer, target the API level required by Google Play at release (36 from 31 Aug 2026), and ship `arm64-v8a` and `x86_64` (emulator) ABIs; `armeabi-v7a` may be added. | M | EVAL-27; Play policy |
-| REQ-P-002 | The Android Auto experience shall be built with the Android for Cars App Library (Car App API level 7 or higher) and run on current Android Auto hosts via projection from the phone. | M (phase 3) | ADR-0004 |
+| REQ-P-002 | The Android Auto experience shall be built with the Android for Cars App Library (Car App API level 7 or higher) and run on current Android Auto hosts via projection from the phone. It is part of the Paid edition only (REQ-F-160). | M (phase 3) | ADR-0004, ADR-0007 |
 | REQ-P-003 | The Linux desktop application shall run on x86-64 Debian 12 / Ubuntu 22.04 or newer (X11 or Wayland via XWayland) with a bundled Java runtime and be distributed as a `.deb` package. | M | Stakeholder "maintainer", development platform |
 | REQ-P-004 | The Raspberry Pi build shall run on Raspberry Pi 4 (≥ 2 GB) and 5 with 64-bit Raspberry Pi OS (Bookworm or newer) on the official 7" touch display (800×480 landscape) and the Touch Display 2 (720×1280, portrait or rotated), with GNSS via gpsd or a serial/USB NMEA receiver, distributed as an arm64 `.deb` with kiosk autostart. | M | Stakeholder "fixed-installation builder" |
 | REQ-P-005 | The core, data, network, map and UI modules shall contain no JVM-only or Android-only API in common code so that an iOS shell can be added later; where a macOS CI runner is available the core shall be compiled for `iosArm64` to prove it. | S | Vision; ADR-0002 |
 | REQ-P-006 | Layouts shall adapt from 360×640 dp portrait (phone) through 800×480 and 720×1280 (Pi displays) to ≥ 1024×600 (tablet, desktop) and to the car host's template canvas. | M | GUI design |
 | REQ-P-007 | Input shall work with touch alone (phone, Pi), with mouse and keyboard (desktop) and with the car host's rotary/touch controls through templates. | M | |
 | REQ-P-008 | The Android application shall provide its core functionality without Google Play Services; Play-Services-dependent extras (if any) shall be isolated in a build flavour. | S | REQ-C-003, F-Droid distribution |
+| REQ-P-009 | When the iOS shell is built (phase 4) it shall be published as a Free edition with advertisements and a Paid edition without, functionally identical and following REQ-F-150…159 (iOS has no car feature in scope; a future CarPlay feature would be Paid-only like Android Auto). | M (phase 4) | ADR-0007 |
 
 ## 6. Functional requirements (REQ-F)
 
@@ -199,7 +208,7 @@ provisioning.
 | REQ-F-051 | A **sessions screen** shall list sessions with start time, duration, profile, measurement count and upload status, and allow deleting one or all sessions after confirmation. | M | Kept feature |
 | REQ-F-052 | Sessions (one, several, all) shall be exportable as **CSV** (RFC 4180, UTF-8, header row, one row per reception with the complete column set of FDS §3.5) and as **GeoJSON** (one point feature per measurement with properties; optionally line features to gateways). | M (CSV), S (GeoJSON) | EVAL-21 |
 | REQ-F-053 | Export shall use the platform's mechanism: Android storage access framework and share sheet; desktop file dialog; Pi a configurable export folder (e.g. a USB stick). Export is streamed and works for ≥ 100 000 rows. | M | EVAL-21 |
-| REQ-F-054 | CSV files exported by TTN Mapper v3 or by Chirp Mapper may be imported for viewing on the map. | C | Continuity for existing users |
+| REQ-F-054 | CSV files exported by TTN Mapper v3 or by Things Mapper may be imported for viewing on the map. | C | Continuity for existing users |
 | REQ-F-055 | The system should warn when the database exceeds a configurable size and offer to export and delete old sessions. | S | Long-running kiosk |
 | REQ-F-056 | The upload queue is part of the database (see REQ-F-082). | M | EVAL-23 |
 
@@ -231,7 +240,7 @@ provisioning.
 
 | ID | Requirement | Prio | Rationale |
 |---|---|---|---|
-| REQ-F-080 | The system shall upload geo-tagged measurements to the ttnmapper.org ingress API (`POST /android/v4`) with a JSON body byte-compatible with the TTN Mapper v3 contract (FDS §3.4), one measurement per request, with a User-Agent that identifies Chirp Mapper, its version and platform. | M | EVAL-24 |
+| REQ-F-080 | The system shall upload geo-tagged measurements to the ttnmapper.org ingress API (`POST /android/v4`) with a JSON body byte-compatible with the TTN Mapper v3 contract (FDS §3.4), one measurement per request, with a User-Agent that identifies Things Mapper, its version and platform. | M | EVAL-24 |
 | REQ-F-081 | Upload happens only after **explicit opt-in** during onboarding (clear explanation of what is shared with whom) and can be switched off at any time; the state is visible in the indicators. | M | EVAL-25; REQ-NF-023 |
 | REQ-F-082 | Uploads shall use a **persistent queue**: store first, then upload; retry with exponential backoff (up to 24 h); order preserved per session; survives restarts and network changes; queue length and last error are visible; the user can retry now or discard. | M | EVAL-23 |
 | REQ-F-083 | The server response (`success`, `message`) shall be evaluated: non-success responses are recorded per measurement and surfaced in the diagnostics and — when repeated — as an indicator warning. | M | EVAL-23 |
@@ -268,6 +277,8 @@ provisioning.
 
 ### 6.13 Car mode (Android Auto)
 
+Car mode is part of the **Paid edition only** (REQ-F-160).
+
 | ID | Requirement | Prio | Rationale |
 |---|---|---|---|
 | REQ-F-120 | The Android Auto experience shall show an app-drawn map with the current session's measurements and gateways next to a pane with the large indicators, with *Start/Stop* as its action, using the Car App Library's `MapWithContentTemplate` in the POI category; night mode follows the host. | M (phase 3) | ADR-0004 |
@@ -293,6 +304,45 @@ provisioning.
 |---|---|---|---|
 | REQ-F-140 | A **replay tool** shall publish recorded uplink messages to an MQTT broker with their original timing and provide a matching position track (GPX/NMEA) to a replay position source, for integration tests, demos and UI work without hardware. | M (development) | EVAL-30 |
 | REQ-F-141 | Desktop and debug builds should offer an in-app *demo/replay* mode using the same mechanism. | S | |
+
+### 6.16 Editions and monetisation
+
+Maintainer decision of 2026-10-24, recorded in
+[ADR-0007](adr/ADR-0007-editions-and-monetisation.md). Purpose: the apps pay
+for their own store presence (Google Play registration 25 USD once, Apple
+Developer Program 99 USD per year). The editions differ only in
+advertisements and in the car experience; everything a surveyor does on the
+phone, tablet, desktop or kiosk is the same.
+
+| ID | Requirement | Prio | Rationale |
+|---|---|---|---|
+| REQ-F-150 | The mobile applications shall be published per store platform in two **editions**: *Free*, which shows advertisements, and *Paid*, which shows none. Android (Google Play) gets both editions; iOS (App Store) gets both when the iOS shell is built (REQ-P-009). | M | ADR-0007 D1 |
+| REQ-F-151 | Both editions shall be functionally identical on phone and tablet: every profile, mapping, map, statistics, export, import, upload, alert, settings and diagnostics function is available in both. The only differences are: advertisements and the ad-consent step (Free), the upgrade entry (Free), the import from the Free edition (Paid), **Android Auto (Paid only, REQ-F-160)**, application id, name/icon badge and store listing. | M | ADR-0007 D1 |
+| REQ-F-152 | Editions shall be built from the same source with the edition as a build-time setting; the Paid edition shall contain no advertising or consent code, no ad SDK and no advertising permission; the Free edition shall contain no car service. There is no runtime unlock. | M | ADR-0007 D1 |
+| REQ-F-153 | **Ad placement:** ads appear only as banners in reserved slots on secondary screens (sessions, session detail, statistics, profiles, settings, diagnostics, about) and on the map screen while no session is running. Never: on the map or drive view while a session runs, in notifications, on the lock screen, in widgets, in onboarding, permission, consent or error dialogs; no interstitial, full-screen, rewarded, video or audio ads (the Free start screen of REQ-F-162 is a notice without sponsor or third-party content, not an ad); a slot keeps ≥ 48 dp distance from the Start/Stop control and the map controls and never covers the map attribution. | M | Driver safety; Google Play ads policy; ADR-0007 D2 |
+| REQ-F-154 | **Ad privacy:** the ad source shall receive no location, measurement, gateway, device, profile or installation-id data; only non-personalised ads are requested; on iOS no tracking that requires App Tracking Transparency; the Paid edition makes no ad-related network request. | M | REQ-NF-022, REQ-NF-062; ADR-0007 D3 |
+| REQ-F-155 | *Withdrawn 2026-10-24.* No ad consent step: the sponsor catalogue (REQ-F-159) reads and stores nothing on the device for advertising. To be re-instated only if an ad source that needs consent is ever adopted through a new ADR. | — | OP-7, ADR-0007 D4 |
+| REQ-F-156 | Ads load only while a slot is visible, refresh at most once per 60 s, and collapse their slot silently on failure, no fill, offline state or declined consent; ad traffic shall stay below 1 MB per hour of foreground use and must not keep the device awake. | M | REQ-NF-005 |
+| REQ-F-157 | The Free edition shall promote the Paid edition only through the start screen (REQ-F-162) and a *Get the ad-free edition with Android Auto* entry in settings and about that opens the Paid edition's store listing; no other pop-ups, reminders or entries on the mapping screens. | S | ADR-0007 D2a, D6 |
+| REQ-F-158 | The Paid edition shall offer a one-time (repeatable) import of profiles (without secrets), sessions with their data, pending uploads, settings and the installation id from a Free edition installed on the same device, without double uploads. | S | ADR-0007 D6 |
+| REQ-F-159 | Advertisements shall come only from the project's signed **sponsor catalogue** (OP-7), behind a port so that the slot component is the only UI code involved; ad-network, analytics and tracking SDKs are not used (they are also outside the additional permission, REQ-C-001). *About* links to a *Become a sponsor* page. | M | ADR-0007 D4 |
+| REQ-F-160 | The **Android Auto** experience (REQ-F-120…124) shall be available in the **Paid edition only**; the Free edition does not register with Android Auto and therefore never appears on a car screen. | M | Maintainer decision; car app quality guidelines AD-1, NA-1 |
+| REQ-F-161 | Desktop and Raspberry Pi builds are distributed free of charge outside app stores, contain no advertisements and include all functions of their platform. | M | ADR-0007 D7 |
+| REQ-F-162 | **Free start screen:** at every start of the app from the launcher the Free edition shall show a start screen stating that this is the Free edition and that the Paid edition (€6 once, shown in the buyer's currency where known) removes the banners and this screen and adds Android Auto, with *Buy the Paid edition* (opens its store listing) and *Continue with Free*, both available immediately (no countdown), and one line linking to the cost page (REQ-F-163). It is not shown when the app returns from the background, when it is opened from the mapping notification or while a session runs; at the very first start the onboarding's *Welcome* step carries the same notice. It contains no sponsor or third-party content. | M | Maintainer decision; ADR-0007 D2a |
+
+### 6.17 Cost awareness and voluntary support
+
+Maintainer decisions of 2026-10-24, recorded in
+[ADR-0008](adr/ADR-0008-cost-awareness-and-support.md); the figures are in
+[08 Costs and funding](08-costs-and-funding.md).
+
+| ID | Requirement | Prio | Rationale |
+|---|---|---|---|
+| REQ-F-163 | **Cost page:** *About* shall contain *What Things Mapper costs*, showing this year's costs, the share covered, open investments, the date of the figures and the note that development time is volunteered, taken from the signed funding data (REQ-F-167); offline it shows the last cached figures with their date. | M | ADR-0008 D1 |
+| REQ-F-164 | **Why this update:** every release note (store *What's new*, GitHub release, changelog) and the in-app *What's new* in *About* shall contain a *Why this update* line naming the mandatory platform work in the release (or "feature release" when there is none); no pop-up is used for it. | M | ADR-0008 D2 |
+| REQ-F-165 | **Yearly thank-you card:** at most once per 12 months — and only after ≥ 30 days and ≥ 3 sessions since installation — when the user stops a session while not moving (last speed < 5 km/h or unknown), the app shall show a card with the user's own figures of the last 12 months (sessions, distance, packets, gateways; computed on the device), one line on the yearly costs and their coverage, and the buttons *Support* and *Not now*. Never while a session runs, never on the car screen, never at app start, not while the user is a supporter (REQ-F-166). All editions and builds. | M | ADR-0008 D3 |
+| REQ-F-166 | **Voluntary support:** store builds shall offer an optional yearly supporter subscription and one-off tips through the store's billing — yearly supporter €5 per year, tips €2, €5 and €10 (decided 2026-10-24) — with restore and a link to manage or cancel the subscription; `foss`, desktop and Raspberry Pi builds shall open the maintainer's GitHub Sponsors page instead. Support unlocks no function and removes neither banners nor the start screen; it shows a thank-you badge in *About* and suppresses the yearly card while active (store builds) or for 12 months after tapping *Support* (other builds). | M | ADR-0008 D4 |
+| REQ-F-167 | **Funding data:** cost figures shall come from a signed funding file published with the sponsor catalogue (doc 08 §6): fetched at most once per 24 h and only when a screen needs it, signature-verified, without identifiers, cached with its date; the Paid edition fetches the funding file but never the sponsor catalogue. | M | ADR-0008 D1 |
 
 ## 7. Non-functional requirements (REQ-NF)
 
@@ -322,7 +372,7 @@ provisioning.
 |---|---|---|
 | REQ-NF-020 | TLS is the default for MQTT and HTTP; certificates are validated against the platform trust store; a custom CA can be configured per profile; plaintext connections require a per-profile acknowledgement and are marked in the UI. | M |
 | REQ-NF-021 | Secrets (API keys, passwords) are stored in platform secure storage (Android Keystore-backed encryption; Linux: Secret Service/libsecret when available, otherwise a file with mode 0600 and a warning), masked in the UI, never logged, never exported, never included in bug reports. | M |
-| REQ-NF-022 | Data minimisation: uploads contain only the contract fields; the installation id is a random UUID; no analytics, advertising or crash-reporting SDK that sends data to third parties. | M |
+| REQ-NF-022 | Data minimisation: uploads contain only the contract fields; the installation id is a random UUID; no analytics or crash-reporting SDK that sends data to third parties; advertising exists only in the Free edition and only under REQ-F-153…155 (no location or measurement data reaches an ad source). | M |
 | REQ-NF-023 | Transparency: a privacy page in the app and in the documentation describes stored and shared data; the Google Play Data Safety declaration matches it; the user can export and delete all data. | M |
 | REQ-NF-024 | Supply chain: dependencies are pinned, come from Maven Central or Google's repository (no JitPack in release builds), and a licence report is generated per release. | S |
 
@@ -356,23 +406,27 @@ provisioning.
 
 | ID | Requirement | Prio |
 |---|---|---|
-| REQ-NF-060 | Google Play: current target API, minimal permissions (no `AD_ID`), declared foreground-service type with justification, accurate Data Safety form, no restricted battery-exemption prompt unless policy-compliant. | M |
+| REQ-NF-060 | Google Play: current target API, minimal permissions (no `AD_ID` in any edition), declared foreground-service type with justification, accurate Data Safety form per edition (advertising for Free; purchase history where store billing is used) and "contains ads" declaration for Free, no restricted battery-exemption prompt unless policy-compliant. | M |
 | REQ-NF-061 | OpenStreetMap: attribution displayed, OSMF tile usage policy respected (UA, caching, concurrency); other tile providers only under their terms. | M |
-| REQ-NF-062 | GDPR: location traces linked to an installation id are personal data — consent, export and deletion are provided; no server-side storage by Chirp Mapper itself. | M |
+| REQ-NF-062 | GDPR: location traces linked to an installation id are personal data — consent, export and deletion are provided; no server-side storage by Things Mapper itself. | M |
+| REQ-NF-063 | App Store (phase 4): privacy nutrition label per edition, privacy manifests of all included SDKs, no App Tracking Transparency prompt because nothing is tracked. | M (phase 4) |
+| REQ-NF-064 | Before monetised publication the trader status (EU Digital Services Act) is declared on each store, and the Data Safety / privacy declarations match each edition's actual behaviour. | M |
 
 ## 8. Constraints (REQ-C)
 
 | ID | Constraint | Source |
 |---|---|---|
-| REQ-C-001 | Licence GPL-3.0-only for the whole repository; all runtime dependencies GPL-3.0-compatible; SPDX headers in sources. | [ADR-0001](adr/ADR-0001-license.md), EVAL-31 |
+| REQ-C-001 | Licence GPL-3.0-only for the whole repository; all runtime dependencies GPL-3.0-compatible, except store and platform vendor libraries covered by the additional permission in license.md (never advertising, analytics or tracking libraries); SPDX headers in sources. | [ADR-0001](adr/ADR-0001-license.md), EVAL-31 |
 | REQ-C-002 | The upload contract of ttnmapper.org (`/android/v4`) is external and fixed; changes are coordinated with the TTN Mapper maintainer; the new User-Agent and expected volumes are announced before public release (OP-1). | EVAL-24 |
-| REQ-C-003 | Core functionality must not depend on Google Play Services; an F-Droid-compatible Android build must be possible. | REQ-P-008 |
+| REQ-C-003 | Core functionality must not depend on Google Play Services; an F-Droid-compatible Android build must be possible; Play-Services libraries are limited to the `play` variants and their absence must not affect any function. | REQ-P-008, ADR-0007 |
 | REQ-C-004 | Technology stack: Kotlin Multiplatform with Compose Multiplatform for all shells except the car templates. | [ADR-0002](adr/ADR-0002-technology-stack.md) |
-| REQ-C-005 | The car experience is built with the Android for Cars App Library for Android Auto; an Android Automotive OS build is a packaging variant, not a separate design. | [ADR-0004](adr/ADR-0004-car-platform.md) |
+| REQ-C-005 | The car experience is built with the Android for Cars App Library for Android Auto; an Android Automotive OS build is a packaging variant, not a separate design; the car experience is part of the Paid edition only (REQ-F-160). | [ADR-0004](adr/ADR-0004-car-platform.md) |
 | REQ-C-006 | No third-party logos or trademarks in the product; own name and icon. | EVAL-26, EVAL-31 |
 | REQ-C-007 | Tile providers' terms (OSMF, any user-configured provider) are respected; imagery providers are not shipped as presets. | EVAL-19 |
 | REQ-C-008 | Raspberry Pi packages must be reproducible in CI (arm64 runner, cross-build container or documented on-device build); Compose for Desktop needs an X11/XWayland session on the Pi. | REQ-P-004 |
-| REQ-C-009 | The upstream test fixtures and rules are reused under GPL-3.0 with attribution; no code is copied from projects with incompatible licences. | [license.md](../license.md) |
+| REQ-C-009 | No source code from ttnmapper-android-v3 is copied into the application code under `app/`; behaviour, protocols, the upload contract and the rules are implemented from the design documents. Upstream test fixtures are kept, with attribution, in a marked test-only directory that never becomes part of a distributed binary. This is the basis of licence route L-A (ADR-0007), chosen 2026-10-24. No code is copied from projects with incompatible licences. | [license.md](../license.md), ADR-0007 D5 |
+| REQ-C-010 | Monetised store publication requires a Google Play payments profile, the Apple Paid Applications agreement and the EU Digital Services Act trader declaration on both stores (the stores display the publisher's contact details); the Paid edition costs €6 once, the yearly supporter €5 per year, tips €2 / €5 / €10 (nearest store price points; other currencies as converted by the stores). | ADR-0007 D8, ADR-0008 D5 |
+| REQ-C-011 | Payment rules: in store builds every purchase (Paid edition, supporter subscription, tips) goes through the store's billing, and no link to outside payment appears inside the app; external payment links (GitHub Sponsors) appear only in the `foss`, desktop and Raspberry Pi builds and on the project website. | Google Play payments policy, App Store guidelines; ADR-0008 D4 |
 
 ## 9. Success targets (TGT)
 
@@ -380,23 +434,29 @@ provisioning.
 |---|---|---|
 | TGT-01 | Feature parity: every "Keep" item of the evaluation's disposition table works on Android and Linux desktop at the end of phase 2. | Test plan, parity checklist |
 | TGT-02 | Field validity: in a one-hour drive test, ≥ 99 % of the uplinks received by the app are stored, ≥ 99 % of the geo-tagged ones are uploaded within 5 min of connectivity, and they appear on ttnmapper.org within 24 h. | Field test protocol (TC-F) |
-| TGT-03 | Side-by-side equivalence: on the same phone and node, Chirp Mapper and TTN Mapper v3 store the same measurements (± duplicates) and Chirp Mapper's upload JSON differs only in `useragent`. | Comparison test |
+| TGT-03 | Side-by-side equivalence: on the same phone and node, Things Mapper and TTN Mapper v3 store the same measurements (± duplicates) and Things Mapper's upload JSON differs only in `useragent`. | Comparison test |
 | TGT-04 | Raspberry Pi 4 + 7" display: cold start ≤ 8 s, ≥ 15 fps with 20 000 points, full session over 4 h without restart. | Bench test |
-| TGT-05 | Android Auto build passes the car app quality checklist on the Desktop Head Unit and on at least one real head unit. | Checklist, DHU test |
+| TGT-05 | Android Auto in the Paid edition passes the car app quality checklist on the Desktop Head Unit and on at least one real head unit. | Checklist, DHU test |
 | TGT-06 | Quality gate: core coverage ≥ 80 %, static analysis clean, zero open High-severity defects at each release. | CI, issue tracker |
 | TGT-07 | Battery: ≤ 8 % per hour (REQ-NF-005). | Field test |
 | TGT-08 | Extensibility: a further adapter (the generic MQTT/JSON one) is implemented by following the adapter guide without touching pipeline, storage, map or upload code. | Review |
+| TGT-09 | Cost coverage: within 12 months after 1.0, income (Paid sales, supporter purchases and sponsor fees, after store fees) covers the recurring costs of doc 08 §3 for each platform the app is published on. | Funding data (doc 08 §6) |
 
 ## 10. Assumptions and open points
 
 | ID | Item | Owner | Needed by |
 |---|---|---|---|
-| OP-1 | Agreement with the TTN Mapper maintainer on Chirp Mapper's use of `/android/v4`, its User-Agent string and acceptable request rates. | Maintainer | before first public beta |
+| OP-1 | Agreement with the TTN Mapper maintainer on Things Mapper's use of `/android/v4`, its User-Agent string and acceptable request rates. | Maintainer | before first public beta |
 | OP-2 | Network-id convention for ChirpStack v4 measurements as expected by ttnmapper.org (`chirp/v4` integration); fallback: omit `network_id` for ChirpStack. | Maintainer (check ingress-api source) | FDS review |
 | OP-3 | Google Play acceptance of the POI category for an app whose "points of interest" are gateways; fallback IoT category (REQ-F-121). | Maintainer | phase 3 |
 | OP-4 | Reference GNSS hardware for the Pi (u-blox USB receiver via gpsd assumed). | Maintainer | phase 3 |
 | OP-5 | The Things Stack Sandbox/Cloud MQTT endpoints and TLS ports are as documented (`<cluster>.cloud.thethings.network`, 1883/8883); to be verified against the console at implementation. | Developer | phase 2 |
 | OP-6 | Whether Compose for Desktop performance on Pi 4 with software rendering meets REQ-NF-003; otherwise Pi 5 becomes the minimum (spike in WP-2.4). | Developer | phase 2 |
+| OP-7 | *Decided 2026-10-24:* sponsor catalogue without SDK is the only ad source (ADR-0007 D4). | Maintainer | done |
+| OP-8 | *Decided 2026-10-24:* route L-A — clean implementation of `app/` (REQ-C-009) plus the GPLv3 §7 additional permission now in license.md (ADR-0007 D5). | Maintainer | done |
+| OP-9 | Whether the Free FOSS variant (sponsor ads) is published on F-Droid and GitHub Releases. | Maintainer | M3.3 |
+| OP-10 | Edition names and icon badge; contact details for the EU DSA trader declaration; GitHub Sponsors profile. (Prices decided 2026-10-24: Paid €6 once, supporter €5 per year, tips €2 / €5 / €10.) | Maintainer | WP-3.7 |
+| OP-11 | Go/no-go for the Apple investment (Mac, iPhone, Apple Developer Program; doc 08 I-11…I-13). Recommended when the Android editions have covered their recurring costs for 12 months (TGT-09) and iOS demand is visible. | Maintainer | before phase 4 |
 | A-1 | Users provide their own mapping device and network-server credentials. | — | — |
 | A-2 | ttnmapper.org continues to serve coverage tiles per network id. | — | — |
 
@@ -434,3 +494,7 @@ provisioning.
 | EVAL-29 | REQ-NF-044 |
 | EVAL-30 | REQ-F-140, REQ-NF-041, REQ-C-009 |
 | EVAL-31 | REQ-C-001, REQ-C-006, REQ-NF-061 |
+
+Not derived from the evaluation: REQ-F-150…167, REQ-P-009, REQ-NF-063/064,
+REQ-C-010/011 and TGT-09 implement the maintainer's monetisation and
+cost-awareness decisions (ADR-0007, ADR-0008).

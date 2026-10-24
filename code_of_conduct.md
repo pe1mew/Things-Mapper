@@ -2,7 +2,7 @@
 
 ## 1. Purpose
 This Code of Conduct outlines expectations for all contributors to ensure a
-welcoming, professional, and inclusive environment around Chirp Mapper.
+welcoming, professional, and inclusive environment around Things Mapper.
 
 ## 2. Expected behaviour
 All contributors are expected to:

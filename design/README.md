@@ -1,6 +1,6 @@
-# Chirp Mapper — design documents
+# Things Mapper — design documents
 
-This folder holds the phase 1 deliverables of the Chirp Mapper project: the
+This folder holds the phase 1 deliverables of the Things Mapper project: the
 evaluation of the original TTN Mapper Android app and the requirements and
 designs of its multi-platform remake.
 
@@ -15,9 +15,10 @@ designs of its multi-platform remake.
 | 05 | [Technical design specification (TDS)](05-tds.md) | Architecture, modules, interfaces, data model, protocol adapters, map renderer, platform shells, security, build and release | Draft v0.1 |
 | 06 | [Test plan](06-test-plan.md) | Strategy, environments, test data, test case catalogue traced to requirements, field test protocol, exit criteria | Draft v0.1 |
 | 07 | [Implementation plan](07-implementation-plan.md) | Phases, milestones, work packages, dependencies, risks, release strategy | Draft v0.1 |
+| 08 | [Costs and funding](08-costs-and-funding.md) | Investments, recurring costs, income per sale, break-even, published funding data | Draft v0.1 |
 | ADR | [Architecture decision records](adr/) | One file per lasting decision: context, options, decision, consequences | — |
 
-Reading order for a newcomer: 01 → 02 → 03 → 04 → 05 → 06 → 07. The ADRs are
+Reading order for a newcomer: 01 → 02 → 03 → 04 → 05 → 06 → 07 → 08. The ADRs are
 referenced from the TDS where a decision matters.
 
 ## Conventions
@@ -80,3 +81,5 @@ Mermaid for flows, sequences and state machines (renders on GitHub); SVG in
 | Coverage tiles | Raster tiles served by tms.ttnmapper.org that show existing coverage per network |
 | LoRdrive mode | TTN Mapper's name for drawing gateway markers and reception lines on the map while driving |
 | Level | TTN Mapper's signal quality figure used for colouring: RSSI plus SNR when SNR is negative |
+| Edition | Free (with advertisements) or Paid (no advertisements, with Android Auto) build of the mobile app; see ADR-0007 |
+| Funding data | Signed JSON with the project's yearly costs and income, shown on the in-app cost page; see doc 08 §6 |

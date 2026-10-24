@@ -1,6 +1,6 @@
 # app/
 
-Application source of Chirp Mapper. Empty in phase 1.
+Application source of Things Mapper. Empty in phase 1.
 
 The module layout is defined in the technical design specification
 ([design/05-tds.md](../design/05-tds.md), section "Module structure") and

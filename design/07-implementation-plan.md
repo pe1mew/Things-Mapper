@@ -5,6 +5,9 @@ Status: **Draft**
 | Rev | Date | Author | Change |
 |---|---|---|---|
 | 0.1 | 2026-09-11 | R. Welling (with Claude) | First complete version |
+| 0.2 | 2026-10-24 | R. Welling (with Claude) | Project renamed to Things Mapper; editions (ADR-0007): WP-2.16, WP-3.7, Paid-only Android Auto, release channels per edition, risks R-9…R-12 |
+| 0.3 | 2026-10-24 | R. Welling (with Claude) | Sponsor catalogue is the only ad source (OP-7); licence route L-A (OP-8); no ad consent |
+| 0.4 | 2026-10-24 | R. Welling (with Claude) | Free start screen; cost awareness and voluntary support (ADR-0008); budget per milestone |
 
 Related: [02 Requirements](02-requirements.md), [05 TDS](05-tds.md)
 (what is built), [06 Test plan](06-test-plan.md) (exit criteria per
@@ -42,14 +45,14 @@ no new High defects.
 | Milestone | Content | Exit (test plan §11) | Artefacts |
 |---|---|---|---|
 | **Phase 1 — Design** (done with this repository state) | Evaluation, requirements, FDS, GUI, TDS, test plan, this plan, ADRs | design review checklist | `design/` |
-| **M2.1 Foundation** | Repository/build/CI, core domain and ports, adapters with fixtures, pipeline, SQLDelight store and outbox, upload worker against stub, replay tool | U/I suites, coverage gate | `core`, `data`, `net` libraries; `chirpmapper-replay` |
-| **M2.2 Desktop MVP** | Map renderer spike and go/no-go, desktop shell with map, indicators, session control, gpsd/NMEA/replay sources, profiles editor, TLS MQTT | TC-MA, TC-P-02/03 desktop | `chirpmapper_0.1.0_amd64.deb` (pre-release) |
-| **M2.3 Android MVP** | Android shell: onboarding, profiles, foreground service, map, drive view, upload with consent, secure store, diagnostics | TC-SE, TC-PR, TC-SO, TC-DS | APK 0.2.0 (`foss`), Play internal track |
-| **M2.4 Parity release** | Sessions, exports (CSV/GeoJSON), statistics, alerts/sounds, legacy import, Dutch translation, field tests, ingress coordination (OP-1) | TC-F-01/02/05, TGT-01/03 | 0.3.0 APK + deb; closed beta |
-| **M3.1 Raspberry Pi kiosk** | Kiosk layouts, on-screen keyboard, provisioning file, systemd, arm64 packaging, Pi field test | TC-KI, TC-F-03, TGT-04 | `chirpmapper_0.4.0_arm64.deb`, Pi guide |
-| **M3.2 Android Auto** | Car App service, map template, profiles list, IoT fallback, DHU and head-unit tests, Play car review | TC-CA, TC-F-04, TGT-05 | APK 0.5.0 with car support |
-| **M3.3 Release 1.0** | Hardening, accessibility, Data Safety, licence report/SBOM, documentation, Play production, F-Droid submission | full regression, TGT-06 | 1.0.0 all channels |
-| **Phase 4 (later)** | iOS shell (Compose Multiplatform or SwiftUI on the core), generic MQTT/JSON adapter (TGT-08), multi-device sessions, AAOS packaging, status page | — | — |
+| **M2.1 Foundation** | Repository/build/CI, core domain and ports, adapters with fixtures, pipeline, SQLDelight store and outbox, upload worker against stub, replay tool | U/I suites, coverage gate | `core`, `data`, `net` libraries; `thingsmapper-replay` |
+| **M2.2 Desktop MVP** | Map renderer spike and go/no-go, desktop shell with map, indicators, session control, gpsd/NMEA/replay sources, profiles editor, TLS MQTT | TC-MA, TC-P-02/03 desktop | `thingsmapper_0.1.0_amd64.deb` (pre-release) |
+| **M2.3 Android MVP** | Android shell: onboarding, profiles, foreground service, map, drive view, upload with consent, secure store, diagnostics | TC-SE, TC-PR, TC-SO, TC-DS | APKs 0.2.0 (`freeFoss`, `paidFoss`), Play internal track for both editions |
+| **M2.4 Parity release** | Sessions, exports (CSV/GeoJSON), statistics, alerts/sounds, legacy import, Dutch translation, editions and ad slot (WP-2.16), field tests, ingress coordination (OP-1) | TC-F-01/02/05, TC-ED, TGT-01/03 | 0.3.0 APK + deb; closed beta |
+| **M3.1 Raspberry Pi kiosk** | Kiosk layouts, on-screen keyboard, provisioning file, systemd, arm64 packaging, Pi field test | TC-KI, TC-F-03, TGT-04 | `thingsmapper_0.4.0_arm64.deb`, Pi guide |
+| **M3.2 Android Auto (Paid edition)** | Car App service, map template, profiles list, IoT fallback, DHU and head-unit tests, Play car review | TC-CA, TC-F-04, TGT-05 | Paid edition 0.5.0 with car support |
+| **M3.3 Release 1.0** | Hardening, accessibility, Data Safety, licence report/SBOM, documentation, store publishing of both editions (WP-3.7), Play production, F-Droid submission (OP-9) | full regression on both editions, TC-ED, TGT-06 | 1.0.0 all channels |
+| **Phase 4 (later)** | Apple investment decision (OP-11, doc 08), iOS shell with Free and Paid editions (Compose Multiplatform or SwiftUI on the core), generic MQTT/JSON adapter (TGT-08), multi-device sessions, AAOS packaging, status page | — | — |
 
 ## 3. Work packages
 
@@ -61,7 +64,7 @@ parties. Sizes: S ≈ 0.5–1 week, M ≈ 1–2, L ≈ 2–4.
 
 | WP | Title | Scope and deliverables | Depends on | Requirements | Size | Milestone |
 |---|---|---|---|---|---|---|
-| WP-2.1 | Repository and build | Gradle KTS multi-module skeleton (TDS §3), version catalogue, convention plugins, ktlint/detekt, GitHub Actions `pr.yml`, coverage gate, SPDX headers, issue/PR templates, `CLAUDE.md` for the code base | — | REQ-NF-042, REQ-C-001 | M | M2.1 |
+| WP-2.1 | Repository and build | Gradle KTS multi-module skeleton (TDS §3), version catalogue, convention plugins, ktlint/detekt, GitHub Actions `pr.yml`, coverage gate, SPDX headers with the additional-permission line (license.md), PR checklist item "no upstream code copied", issue/PR templates, `CLAUDE.md` for the code base | — | REQ-NF-042, REQ-C-001 | M | M2.1 |
 | WP-2.2 | Core domain, ports, rules | Domain model, value classes, ports, `Level`/`LevelClass`, gateway validation, normalisation, freshness, fix selection; unit tests TC-RU, TC-PO-01…03 | WP-2.1 | REQ-F-040…047, REQ-F-031…033 | M | M2.1 |
 | WP-2.3 | Protocol adapters and fixtures | `TtsV3Adapter`, `ChirpStackV4Adapter`, Packet Broker rules, adapter registry, `ProfileFieldSpec`; fixtures FIX-TTS/CS4/CS3/BAD recorded and anonymised; TC-IN-01…08 | WP-2.2, NS-TTS/NS-CS4 access | REQ-F-020…024, REQ-F-008 | L | M2.1 |
 | WP-2.4 | **Map renderer spike** | Projection, tile set, `DrawTarget`, tile cache, point/line/marker layers, Compose `MapView`; benchmark scene (20 k points/lines) on desktop and Pi 4; **go/no-go on ADR-0003** (fallback MapComposeMP) | WP-2.1 | REQ-F-060…064, REQ-NF-003 | L | M2.2 |
@@ -76,6 +79,8 @@ parties. Sizes: S ≈ 0.5–1 week, M ≈ 1–2, L ≈ 2–4.
 | WP-2.13 | Sessions, statistics, export/import | Sessions and session detail screens, statistics engine and screen, CSV/GeoJSON exporters (streamed), SAF/share on Android, legacy CSV import, retention warning; TC-ST-03…10, TC-IS-03/04 | WP-2.12 | REQ-F-051…055, 065, 071, 073 | M | M2.4 |
 | WP-2.14 | Alerts, sounds, polish | Alert engine, packet sound picker, legend, gateway sheet, earlier sessions on map, keep-screen-on, Dutch translation, accessibility pass; TC-AL, TC-SO-03, TC-CX-01/02 | WP-2.13 | REQ-F-066, 090, 091, REQ-NF-033, 034 | M | M2.4 |
 | WP-2.15 | Field validation and ingress coordination | OP-1 agreement (user agent, volumes), field tests TC-F-01/02/05/07 with protocol §7, fixes, parity checklist TGT-01/03, closed beta | WP-2.13, 2.14 | TGT-01…03, 07, REQ-C-002 | M (+ waiting) | M2.4 |
+| WP-2.16 | Editions and ad slot | Build variants `free`/`paid` × `foss`/`play`, `Edition` constant, `ads` module with `AdPolicy`, `AdSlot`, `NoAdProvider`, `SponsorAdProvider` + catalogue signing script and `gh-pages` publication, upgrade entry, `EditionTransferProvider` and Paid import, CI manifest checks (no ad code in Paid, no car service in Free, no `AD_ID` anywhere); TC-ED-01…06, 08…11, 13, 14 | WP-2.12 | REQ-F-150…161 | M | M2.4 |
+| WP-2.17 | Cost awareness and support | Funding file format, ledger and signing script (`tools/funding/`), `FundingRepository`; cost page (SCR-15); Free start screen (SCR-14) with `StartScreenPolicy`; yearly thank-you card (SCR-16) with `YearlyCardPolicy`; support (SCR-17): Play Billing provider in the `play` variants, GitHub Sponsors link in `foss` and desktop; *What's new* in About; release-notes template with the *Why this update* line and its CI check; TC-ED-15, TC-SU-01…04, 06…08 | WP-2.16 | REQ-F-162…167, REQ-C-011 | M | M2.4 |
 
 ### Phase 3
 
@@ -83,16 +88,17 @@ parties. Sizes: S ≈ 0.5–1 week, M ≈ 1–2, L ≈ 2–4.
 |---|---|---|---|---|---|---|
 | WP-3.1 | Kiosk shell | Kiosk scaffold for 800×480 and 720×1280, on-screen keyboard, long-press exit, provisioning file with secrets from file/env, systemd unit, arm64 `.deb` on arm64 runner, software-rendering default decision, Pi guide in `documentation/`; TC-KI-01…04 | WP-2.11, 2.15 | REQ-P-004, REQ-F-130, 131, 134, REQ-C-008 | L | M3.1 |
 | WP-3.2 | Kiosk resilience and Pi field test | Connectivity toggling, cache behaviour, unsynced-clock flag, optional status page, 4 h drive test TC-F-03, performance TC-P-01/03 on Pi 4 (decide Pi 4 vs Pi 5 minimum, OP-6) | WP-3.1 | REQ-F-132, 133, 135, TGT-04 | M | M3.1 |
-| WP-3.3 | Android Auto | Car App service, `MapCarScreen` with `SurfaceCallback` renderer, profiles list, fallback grid/list behind build flag, host validator, DHU tests TC-CA-01…04/06, car location source; Play "Android Auto" review submission (OP-3) | WP-2.12, 2.4 | REQ-P-002, REQ-F-120…123 | L | M3.2 |
+| WP-3.3 | Android Auto (Paid edition) | Car App service in the `paid` source set, `MapCarScreen` with `SurfaceCallback` renderer, profiles list, fallback grid/list behind build flag, host validator, DHU tests TC-CA-01…04/06, car location source; Play "Android Auto" review submission (OP-3) | WP-2.12, 2.4 | REQ-P-002, REQ-F-120…123 | L | M3.2 |
 | WP-3.4 | Car field test and quality checklist | Real head unit test TC-F-04, checklist TC-CA-05, night mode, fixes | WP-3.3 | REQ-NF-032, TGT-05 | S | M3.2 |
 | WP-3.5 | Hardening and compliance | Full regression, TC-CX, Data Safety form, privacy page, licence report and SBOM in release, reproducible `foss` build, crash-free monitoring without third-party SDK (Play vitals only), documentation set (`documentation/`) | WP-3.2, 3.4 | REQ-NF-023, 024, 044, 060…062, TGT-06 | M | M3.3 |
 | WP-3.6 | Release 1.0 | Tag, signed artefacts, Play production rollout (staged), GitHub release, F-Droid metadata submission, announcement to the TTN Mapper community | WP-3.5 | — | S | M3.3 |
+| WP-3.7 | Store publishing and compliance | Google Play payments profile, EU DSA trader declaration, two listings (Free, Paid) with a shared app-signing key, "contains ads" and Data Safety per edition, Android Auto review for the Paid app, Paid price €6 and edition names, supporter (€5/year) and tip (€2/€5/€10) products in both listings, GitHub Sponsors profile and `.github/FUNDING.yml`, sponsor catalogue go-live with the *Become a sponsor* page, first funding data publication; TC-ED-12, TC-SU-05, 09, 10 | WP-3.5 | REQ-C-010, REQ-NF-060, REQ-NF-064, TGT-09 | S | M3.3 |
 
 ### Phase 4 (not planned in detail)
 
 | WP | Title | Note |
 |---|---|---|
-| WP-4.1 | iOS shell | Core already compiles for `iosArm64` (CI job); needs Darwin HTTP engine, an MQTT implementation (CocoaMQTT via expect/actual or a pure-Kotlin client), Core Location source, `CoreGraphicsDrawTarget`; App Store distribution of GPL software needs a decision (see ADR-0001 consequences) |
+| WP-4.1 | iOS shell | Core already compiles for `iosArm64` (CI job); needs Darwin HTTP engine, an MQTT implementation (CocoaMQTT via expect/actual or a pure-Kotlin client), Core Location source, `CoreGraphicsDrawTarget`; needs the Apple hardware of doc 08 (I-11…I-13) after the OP-11 decision; Free and Paid editions per REQ-P-009 (App Group import, sponsor ads from common code); App Store distribution of GPL software requires licence route OP-8 (ADR-0007 D5) |
 | WP-4.2 | Generic MQTT/JSON adapter | Proves TGT-08 |
 | WP-4.3 | Multi-device sessions and device colouring | REQ-F-005 extension |
 | WP-4.4 | Android Automotive OS packaging | Same car module, AAOS target and Play AAOS review |
@@ -101,7 +107,7 @@ parties. Sizes: S ≈ 0.5–1 week, M ≈ 1–2, L ≈ 2–4.
 
 ```mermaid
 gantt
-    title Chirp Mapper — indicative sequencing (weeks of focused effort, not calendar)
+    title Things Mapper — indicative sequencing (weeks of focused effort, not calendar)
     dateFormat  X
     axisFormat  %s
     section M2.1 Foundation
@@ -123,20 +129,23 @@ gantt
     WP-2.13 Sessions, stats, export:d13, after c12, 2
     WP-2.14 Alerts and polish      :d14, after d13, 2
     WP-2.15 Field validation       :d15, after d14, 2
+    WP-2.16 Editions and ad slot   :d16, after c12, 2
+    WP-2.17 Costs and support      :d17, after d16, 2
     section Phase 3
     WP-3.1 Kiosk shell             :e1, after d15, 3
     WP-3.2 Kiosk field test        :e2, after e1, 2
     WP-3.3 Android Auto            :e3, after d15, 3
     WP-3.4 Car field test          :e4, after e3, 1
     WP-3.5 Hardening               :e5, after e2, 2
-    WP-3.6 Release 1.0             :e6, after e5, 1
+    WP-3.7 Store publishing        :e7, after e5, 1
+    WP-3.6 Release 1.0             :e6, after e7, 1
 ```
 
 Critical path: WP-2.1 → 2.2 → 2.5 → 2.6 → 2.7 → 2.9 → 2.11 → 2.12 → 2.13 →
 2.14 → 2.15 → 3.1/3.3 → 3.5 → 3.6. The map spike (WP-2.4) runs in parallel
 with the core packages and must conclude before WP-2.11 starts.
 
-Indicative totals: phase 2 ≈ 32 person-weeks, phase 3 ≈ 15 person-weeks.
+Indicative totals: phase 2 ≈ 36 person-weeks, phase 3 ≈ 16 person-weeks.
 At a part-time pace these are calendar quarters, not weeks; the milestones
 are ordered so that something usable exists from M2.2 onwards.
 
@@ -159,6 +168,12 @@ are ordered so that something usable exists from M2.2 onwards.
 - **Quality gates:** ktlint, detekt, Android Lint (hard-coded text as
   error), coverage ≥ 80 % for `core`, licence check, dependency updates via
   Dependabot with grouped PRs.
+- **Clean implementation:** the `ttnmapper-android-v3` submodule is read as
+  a reference only; no code is copied from it into `app/` (REQ-C-009,
+  ADR-0007 D5). Pull requests confirm this in the checklist.
+- **Release notes and funding data:** every release carries a *Why this
+  update* line (REQ-F-164); the funding data is refreshed at every release
+  and at least quarterly (doc 08 §6).
 - **Secrets and signing:** never in the repository; GitHub Actions secrets
   for release signing; local `signing.properties` ignored by git.
 
@@ -166,11 +181,12 @@ are ordered so that something usable exists from M2.2 onwards.
 
 | Channel | From | Notes |
 |---|---|---|
-| GitHub Releases (pre-release) | M2.2 | `.deb` x86_64; APK from M2.3; arm64 `.deb` from M3.1; checksums |
-| Google Play internal testing | M2.3 | `play` flavour; small tester list |
+| GitHub Releases (pre-release) | M2.2 | `.deb` x86_64; `freeFoss` APK from M2.3 (OP-9); arm64 `.deb` from M3.1; checksums |
+| Google Play internal testing | M2.3 | Free and Paid listings (`freePlay`, `paidPlay`); small tester list |
 | Google Play closed beta | M2.4 | community testers from the TTN Mapper user base |
-| Google Play production (staged) | M3.3 | with Android Auto after WP-3.3 review |
-| F-Droid | after 1.0 | `foss` flavour, reproducible build metadata |
+| Google Play production (staged) | M3.3 | Free and Paid listings; Android Auto in the Paid app after the WP-3.3 review |
+| F-Droid | after 1.0 | `freeFoss` variant (sponsor ads, flagged "Ads"), reproducible build metadata — if OP-9 says yes |
+| App Store (Free and Paid) | phase 4 | under additional permission (b) (license.md) |
 | Debian package repository | later | until then GitHub Releases |
 
 Versioning: 0.x pre-releases per milestone (0.1 M2.2, 0.2 M2.3, 0.3 M2.4,
@@ -188,7 +204,12 @@ Versioning: 0.x pre-releases per milestone (0.1 M2.2, 0.2 M2.3, 0.3 M2.4,
 | R-6 | Hardware availability (head unit, Pi displays, GNSS) | M / L | Order at phase 2 start; DHU covers most car testing |
 | R-7 | Battery consumption on Android above target | M / M | Measure early (M2.3), tune keep-alive/GPS cadence; document expectation |
 | R-8 | TTS or ChirpStack JSON changes | L / M | Lenient parsers; fixtures updated per release; version pinning of tested stacks in docs |
-| R-9 | GPL and app-store constraints for a later iOS shell | — / M | Recorded in ADR-0001; decide when phase 4 starts |
+| R-9 | Upstream code copied into `app/` would fall outside the additional permission | L / H | Route L-A chosen 2026-10-24; rule REQ-C-009 in the contributing guide and PR checklist; review at every milestone |
+| R-10 | Ad income negligible for a niche app | H / L | The Paid edition with Android Auto carries the cost coverage; sponsor catalogue with flat fees; costs are small (TGT-09) |
+| R-11 | Store rejection over ad placement or the car category | M / M | Conservative placement (FDS-17.2), car only in the ad-free Paid app, IoT fallback (ADR-0004) |
+| R-12 | The EU DSA trader declaration publishes the publisher's address and phone number | H / M | Decide the contact details before WP-3.7 (OP-10) |
+| R-13 | Awareness measures perceived as nagging, hurting reviews | M / M | One start screen (Free only), at most one card a year, thank-you tone, no countdowns (ADR-0008 D7); watch reviews and adjust |
+| R-14 | Hardware costs higher than estimated | M / L | Ranges in doc 08; refurbished hardware; Apple purchase gated by OP-11 |
 
 ## 8. Entry criteria for phase 2
 
@@ -201,3 +222,25 @@ Versioning: 0.x pre-releases per milestone (0.1 M2.2, 0.2 M2.3, 0.3 M2.4,
    display and GNSS receiver ordered.
 5. Repository settings: branch protection on `main`, Actions enabled,
    Dependabot enabled.
+6. Clean-implementation rule (REQ-C-009) and the additional permission
+   published in the contributing guide and license.md (done 2026-10-24).
+7. Hardware for M2.1–M2.3 available (doc 08 I-1…I-4).
+
+## 9. Budget and purchases
+
+Money is spent per milestone, not up front; price ranges and assumptions
+are in [08 Costs and funding](08-costs-and-funding.md).
+
+| When | Purchases (doc 08 ids) | Estimate |
+|---|---|---|
+| M2.1 | I-4 LoRaWAN mapping node (if not owned) | €40–100 |
+| M2.3 | I-1 Google Play registration, I-2 Android test phone, I-3 older Android phone | €373–573 |
+| M3.1 | I-7…I-10 Raspberry Pi 5 kit, Touch Display 2, Raspberry Pi 4, GNSS receiver | €235–325 |
+| M3.2 | I-5, I-6 Android Auto bench (head unit, 12 V supply, cables) | €200–450 |
+| Phase 4, after OP-11 | I-11…I-13 Mac, iPhone, first year of the Apple Developer Program | €900–1,800 |
+| Every year | R-1…R-8: Android only ≈ €95–155; with iOS ≈ €340–565 | — |
+
+Hardware that is already owned enters the funding data at €0. The funding
+data is first published in WP-3.7 (M3.3) and refreshed at every release and
+at least quarterly.
+
