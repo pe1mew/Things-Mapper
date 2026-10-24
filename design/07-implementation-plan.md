@@ -214,8 +214,9 @@ Versioning: 0.x pre-releases per milestone (0.1 M2.2, 0.2 M2.3, 0.3 M2.4,
 ## 8. Entry criteria for phase 2
 
 1. Design review of documents 01–07 completed; comments resolved or logged.
-2. Decisions confirmed: package root / application id (TDS-OP-1), app name
-   and icon direction (GUI-OP-1).
+2. Decisions confirmed: package root / application id (TDS-OP-1, done
+   2026-10-24: `nl.pe1mew.thingsmapper`), app name and icon direction
+   (GUI-OP-1).
 3. OP-1 contact with the TTN Mapper maintainer initiated.
 4. Test accounts and hardware: TTS Sandbox application and API key,
    ChirpStack v4 test instance, one mapping node, Raspberry Pi 4 with

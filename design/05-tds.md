@@ -8,6 +8,7 @@ Status: **Draft**
 | 0.2 | 2026-10-24 | R. Welling (with Claude) | Project renamed to Things Mapper; editions (ADR-0007): build variants `free`/`paid` × `foss`/`play`, `ads` module, `AdPolicy`, edition transfer, car service Paid-only |
 | 0.3 | 2026-10-24 | R. Welling (with Claude) | Sponsor catalogue is the only ad source (OP-7); licence route L-A (OP-8); no ad consent |
 | 0.4 | 2026-10-24 | R. Welling (with Claude) | Free start screen; cost awareness and voluntary support (ADR-0008); budget per milestone |
+| 0.5 | 2026-10-24 | R. Welling (with Claude) | Package root `nl.pe1mew.thingsmapper` confirmed (TDS-OP-1 closed) |
 
 Related: [02 Requirements](02-requirements.md), [03 FDS](03-fds.md),
 [04 GUI design](04-gui-design.md), [06 Test plan](06-test-plan.md),
@@ -153,8 +154,8 @@ long as the process. Optional embedded status HTTP server.
 | `ads` (TDS-3.10) | KMP library | android, jvm, iosArm64 | `AdProvider` port, `AdPolicy`, `NoAdProvider`, `SponsorAdProvider` (TDS-9.5) |
 | `support` (TDS-3.11) | KMP library | android, jvm, iosArm64 | `FundingRepository`, `StartScreenPolicy`, `YearlyCardPolicy`, `SupportPort`; providers: Play Billing (Android `play` variants), external link (`foss`, desktop), StoreKit (iOS later) (TDS-9.6) |
 
-Package root: `nl.pe1mew.thingsmapper` (open point TDS-OP-1 to confirm the
-reverse-domain). Android `applicationId` = package root for the Free
+Package root: `nl.pe1mew.thingsmapper` (confirmed by the maintainer on
+2026-10-24, TDS-OP-1 closed). Android `applicationId` = package root for the Free
 edition and package root + `.paid` for the Paid edition (TDS-9.5); desktop
 package name `thingsmapper`.
 
@@ -794,7 +795,7 @@ exact versions.
 | TDS-R-4 | Google Play POI category refusal | Build flag for IoT fallback (TDS-9.2), decision at WP-3.3 |
 | TDS-R-5 | ttnmapper.org contract changes or rate limits | OP-1 coordination; payload builder isolated and versioned; server messages surfaced |
 | TDS-R-6 | Secret Service absent on kiosk images | 0600 file fallback with warning; documented |
-| TDS-OP-1 | Confirm package root / application id `nl.pe1mew.thingsmapper` | Maintainer, WP-2.1 |
+| TDS-OP-1 | *Closed 2026-10-24:* package root and Free application id `nl.pe1mew.thingsmapper` confirmed | — |
 | TDS-OP-2 | Exact Compose/Kotlin/AGP versions at WP-2.1 | Developer |
 | TDS-OP-3 | Whether to ship `armeabi-v7a` (older phones) | Maintainer, WP-2.3 |
 | TDS-R-7 | Sponsor income stays low | The Paid edition carries the cost coverage; no ad-network fallback by design (ADR-0007 D4) |

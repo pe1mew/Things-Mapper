@@ -53,6 +53,8 @@ software. Design documents carry their own revision table in their header.
   TC-ED-15 and TC-SU-01…10, WP-2.17, budget per milestone.
 
 **Changed**
+- Package root `nl.pe1mew.thingsmapper` confirmed (TDS-OP-1 closed); the
+  Paid edition's `.paid` suffix remains open (TDS-OP-4).
 - Prices: Paid edition €6 once, yearly supporter €5, tips €2 / €5 / €10; the Free edition starts with a start
   screen offering the Paid edition (REQ-F-157 adjusted, REQ-F-162).
 - Decisions of 2026-10-24: the sponsor catalogue is the only ad source
