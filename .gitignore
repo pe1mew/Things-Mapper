@@ -32,6 +32,22 @@ captures/
 *.env
 secrets.properties
 signing.properties
+*.mobileprovision
+*.provisionprofile
+
+# --- Xcode / iOS (ADR-0010) --------------------------------------------------
+# The Xcode project is generated from app/ios/project.yml by XcodeGen
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+DerivedData/
+.swiftpm/
+*.xcarchive
+*.ipa
+*.dSYM/
+*.dSYM.zip
+# Personal signing settings (development team); copy Local.xcconfig.example
+app/ios/Configuration/Local.xcconfig
 
 # --- Packaging outputs -------------------------------------------------------
 *.deb

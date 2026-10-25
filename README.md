@@ -19,7 +19,7 @@ ChirpStack v4), today's platform rules, and more than one kind of device:
 | Android Auto | car head unit (projection from the phone) — Paid edition | designed |
 | Linux desktop (x86-64) | mouse/keyboard, development and desk use | designed |
 | Raspberry Pi 4/5 + touch display | dedicated in-vehicle mapping box | designed |
-| iOS | out of scope for now — the layered architecture keeps the door open | — |
+| iOS | phase 4 — the repository is set up for iOS development on a Mac from phase 2: a skeleton app is built and tested in CI ([app/ios](app/ios/README.md), ADR-0010) | prepared |
 
 > **Project status: Phase 1 — design.** There is no application code yet.
 > Phase 1 delivers the evaluation of the original app, the requirements,
@@ -74,9 +74,9 @@ is changed and what is dropped.
 Design goals of the remake:
 
 - **One core, many shells.** All mapping logic (protocol adapters, positioning
-  rules, storage, upload queue, map model) lives in a platform-independent
-  Kotlin Multiplatform core; phone, car, desktop and Raspberry Pi are thin
-  shells on top of it.
+  rules, storage, upload queue, map model) lives in platform-independent
+  Kotlin Multiplatform libraries that are built and tested on their own;
+  phone, car, desktop and Raspberry Pi are thin shells on top of them.
 - **Current network servers.** The Things Stack v3 and ChirpStack v4 out of
   the box, TLS by default, extension point for others.
 - **Nothing lost.** Every received packet is stored locally first; uploads are
@@ -93,7 +93,8 @@ Design goals of the remake:
 |---|---|
 | `design/` | All design documents of phase 1 (evaluation, requirements, FDS, GUI design, TDS, test plan, implementation plan, ADRs) |
 | `design/gui/` | Wireframes (SVG) referenced by the GUI design |
-| `app/` | Application source — lands in phase 2 (see the implementation plan) |
+| `lib/` | Shared Kotlin Multiplatform libraries (core, data, net, map, ui, ads, support, testing) — a Gradle build of their own, tested on every target and reused by all shells ([ADR-0009](design/adr/ADR-0009-shared-libraries.md)); lands in phase 2 |
+| `app/` | Application shells (Android, Linux desktop / Raspberry Pi, iOS, replay tool) built on `lib/` — lands in phase 2 (see the implementation plan); the iOS app's Xcode side is in `app/ios/` ([guide for Mac developers](app/ios/README.md)) |
 | `documentation/` | End-user documentation — written alongside the implementation |
 | `ttnmapper-android-v3/` | Git submodule: the original TTN Mapper Android app, the study reference and the origin of the GPL-3.0 licence of this repository |
 

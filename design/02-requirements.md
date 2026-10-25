@@ -9,6 +9,8 @@ Status: **Draft**
 | 0.3 | 2026-10-24 | R. Welling (with Claude) | OP-7 decided (sponsor catalogue only), OP-8 decided (route L-A, additional permission in license.md); REQ-F-155 withdrawn, REQ-F-159 changed |
 | 0.4 | 2026-10-24 | R. Welling (with Claude) | Free start screen (REQ-F-162); §6.17 cost awareness and voluntary support (REQ-F-163…167, ADR-0008); Paid price €6; REQ-C-011 payment rules; OP-11 Apple investment; hobby non-goal; doc 08 |
 | 0.5 | 2026-10-25 | R. Welling (with Claude) | REQ-C-008: packages must install on the oldest and newest supported release |
+| 0.6 | 2026-10-25 | R. Welling (with Claude) | REQ-NF-045: shared code as separately built and tested libraries (ADR-0009) |
+| 0.7 | 2026-10-25 | R. Welling (with Claude) | REQ-P-010: repository ready for iOS development on Apple hardware from phase 2 (ADR-0010) |
 
 Related: [01 Evaluation](01-evaluation.md) (rationale `EVAL-nn`),
 [03 FDS](03-fds.md), [05 TDS](05-tds.md), [06 Test plan](06-test-plan.md),
@@ -113,7 +115,7 @@ provisioning.
 
 | Item | Reason |
 |---|---|
-| iOS shell | Deferred to phase 4; architecture keeps it possible (REQ-P-005); its editions are specified now (REQ-P-009) |
+| iOS shell | Deferred to phase 4; architecture keeps it possible (REQ-P-005); its editions are specified now (REQ-P-009); the repository is ready for iOS development on a Mac from phase 2, with a skeleton app built in CI (REQ-P-010) |
 | Feature unlocks, paid features, commercial support or services | Hobby project: the editions differ only in ads, the start screen and Android Auto (§6.16); voluntary support (§6.17) unlocks nothing; no paid support, consultancy or custom builds (ADR-0008 D6) |
 | TTN v2, Helium, other network servers | TTN v2 is gone; others via the adapter extension point later |
 | Downlinks, device configuration, payload decoding | Not needed for coverage mapping |
@@ -134,6 +136,7 @@ provisioning.
 | REQ-P-007 | Input shall work with touch alone (phone, Pi), with mouse and keyboard (desktop) and with the car host's rotary/touch controls through templates. | M | |
 | REQ-P-008 | The Android application shall provide its core functionality without Google Play Services; Play-Services-dependent extras (if any) shall be isolated in a build flavour. | S | REQ-C-003, F-Droid distribution |
 | REQ-P-009 | When the iOS shell is built (phase 4) it shall be published as a Free edition with advertisements and a Paid edition without, functionally identical and following REQ-F-150…159 (iOS has no car feature in scope; a future CarPlay feature would be Paid-only like Android Auto). | M (phase 4) | ADR-0007 |
+| REQ-P-010 | The repository shall be ready for iOS development on Apple hardware from phase 2 on. On a Mac with the documented tools, a developer goes from a clean checkout to the iOS app running in the simulator by following `app/ios/README.md`, without restructuring the repository. CI builds and tests the iOS app on every pull request. No signing data is stored in the repository. | M | Maintainer decision 2026-10-25; [ADR-0010](adr/ADR-0010-ios-development-setup.md) |
 
 ## 6. Functional requirements (REQ-F)
 
@@ -396,6 +399,7 @@ Maintainer decisions of 2026-10-24, recorded in
 | REQ-NF-042 | Static analysis (ktlint, detekt) and all tests run in CI on every pull request; the default branch is always green. | M |
 | REQ-NF-043 | A new network-server adapter is added without modifying pipeline, storage, map or upload code (REQ-F-008); proven by the generic adapter (REQ-F-028) or a review checklist. | S |
 | REQ-NF-044 | Developer documentation (module overview, adapter guide, build and release) and user documentation per platform are maintained with the code. | M |
+| REQ-NF-045 | Code shared between the Linux, Android and iOS shells (core, data, network, map, UI, ads, support) shall be developed as libraries in a build of their own that depends on no application shell; each library shall be tested as a library on every target (JVM for Linux, Android, iOS on a macOS CI runner), and the shells shall reuse the libraries without modification ([ADR-0009](adr/ADR-0009-shared-libraries.md)). | M |
 
 ### 7.6 Observability
 
