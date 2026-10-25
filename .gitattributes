@@ -1,0 +1,20 @@
+# Line endings: LF in the repository and in working copies on Linux and
+# macOS. Shell scripts, gradlew and Xcode build-phase scripts break with
+# CRLF. Windows batch files keep CRLF.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.jar binary
+*.ttf binary
+*.otf binary
+*.wav binary
+*.ogg binary
+*.mp3 binary
+*.db binary

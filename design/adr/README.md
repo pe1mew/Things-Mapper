@@ -14,7 +14,8 @@ decision → consequences. Status values: *Proposed*, *Accepted*,
 | [ADR-0006](ADR-0006-mqtt-client.md) | MQTT client: port with HiveMQ MQTT Client implementation | Accepted |
 | [ADR-0007](ADR-0007-editions-and-monetisation.md) | Editions: Free with ads, Paid without ads and with Android Auto | Accepted (sponsor catalogue; licence route L-A with additional permission) |
 | [ADR-0008](ADR-0008-cost-awareness-and-support.md) | Cost awareness and voluntary support; Paid price €6; no commercial services | Accepted |
-| [ADR-0009](ADR-0009-shared-libraries.md) | Shared code as libraries in a build of their own (`lib/`), reused by the shells in `app/` | Accepted |
+| [ADR-0009](ADR-0009-shared-libraries.md) | Shared code as libraries in a build of their own (`lib/`), reused by the shells in `app/` | Accepted, D7 amended by ADR-0010 |
+| [ADR-0010](ADR-0010-ios-development-setup.md) | iOS development setup: `app/ios-kit` + XcodeGen project in `app/ios/`, direct integration, two edition targets, skeleton in CI from WP-2.1 | Accepted |
 
 To add one: copy the structure of ADR-0006, take the next number, link it
 from the TDS where the decision applies, and add a row here.

@@ -10,6 +10,7 @@ Status: **Draft**
 | 0.4 | 2026-10-24 | R. Welling (with Claude) | Free start screen; cost awareness and voluntary support (ADR-0008); budget per milestone |
 | 0.5 | 2026-10-25 | R. Welling (with Claude) | Linux fixes: §6.22 packaging install tests TC-PK-01/02; TC-KI-08 boot to kiosk, TC-KI-09 provisioning-file precedence, TC-KI-03 owner/mode cases; TC-SO-06 desktop settings survive a power cut; CI-Desktop builds in `debian:12` |
 | 0.6 | 2026-10-25 | R. Welling (with Claude) | Libraries tested as libraries (ADR-0009): principle, CI-iOS environment, §6.23 TC-LB-01…04, unit level on every target, PR checklist, traceability for REQ-NF-045 |
+| 0.7 | 2026-10-25 | R. Welling (with Claude) | iOS development setup (ADR-0010): §6.24 TC-IO-01…03, CI-iOS builds the iOS app, LAB-Mac; early packaging check: TC-PK-01/02 and TC-IO-01/02 in the M2.1 exit |
 
 Related: [02 Requirements](02-requirements.md) (acceptance basis),
 [03 FDS](03-fds.md) (expected behaviour), [05 TDS](05-tds.md) (test hooks,
@@ -94,12 +95,13 @@ contract behaviour.
 | CI-JVM | GitHub-hosted Ubuntu, JDK 21, Testcontainers (Mosquitto 2.x, stub ingress) | U, I |
 | CI-Android | Emulators API 30, 34, 36 (x86_64), `freeFoss` and `paidFoss` variants | I (service, secret store), S (UI tests) |
 | CI-Desktop | Compose UI tests headless (x86_64), `packageDeb` in a `debian:12` container on x86_64 and arm64 runners, install tests in clean distribution containers (TC-PK) | S |
-| CI-iOS | GitHub-hosted macOS runner with Xcode and the iOS simulator (free for public repositories): `iosSimulatorArm64Test` of every library | U, I |
+| CI-iOS | GitHub-hosted macOS runner with Xcode and the iOS simulator (free for public repositories): `iosSimulatorArm64Test` of every library; XcodeGen + `xcodebuild` build and test of the iOS app, both editions (TC-IO) | U, I, S |
 | LAB-Phone-A | Current mid-range phone, Android 15/16, `freePlay`, `paidPlay` and `freeFoss` variants | S, F |
 | LAB-Phone-B | Older phone, Android 8.1 or 10 (minSdk coverage) | S |
 | LAB-Tablet | 10" tablet (expanded layout) | S |
 | LAB-Pi4 | Raspberry Pi 4 (2 GB), Raspberry Pi OS 64-bit, official 7" display 800×480, u-blox USB GNSS via gpsd, LTE hotspot | S, F, performance |
 | LAB-Pi5 | Raspberry Pi 5, Touch Display 2 (720×1280) | S |
+| LAB-Mac | Mac with Apple silicon (doc 08 I-11, after OP-11), Xcode, JDK 21, XcodeGen; later an iPhone (I-12) | X (TC-IO-03), S (phase 4) |
 | LAB-Desktop | Ubuntu 24.04 x86_64 (X11 and Wayland/XWayland) | S |
 | LAB-Car | Desktop Head Unit (DHU) on the developer machine; one real Android Auto head unit (wired) on a 12 V bench supply (doc 08 I-5, I-6); Paid edition | S, F |
 | LAB-Billing | Play Console license testers and test products for both listings (StoreKit sandbox in phase 4) | S |
@@ -414,6 +416,14 @@ verifies that the Free edition has no car service.
 | TC-LB-03 | Port contract suites | U/I (CI) | REQ-NF-045, NF-040 | run each contract suite of `testing` against every implementation of its port — e.g. `SecretStoreContract` against the in-memory fake, Secret Service, the `0600` file store, the Android Keystore store (instrumented, CI-Android) and later the iOS Keychain store | every implementation passes the same suite |
 | TC-LB-04 | Public API changes are explicit | U (CI) | REQ-NF-045 | change a public declaration of a library without updating its ABI dump | CI fails until the dump is updated in the same pull request |
 
+### 6.24 iOS development setup (TC-IO)
+
+| ID | Title | Type | Req | Procedure | Expected |
+|---|---|---|---|---|---|
+| TC-IO-01 | iOS app builds from a clean checkout | S (CI) | REQ-P-010 | on CI-iOS: `xcodegen generate` in `app/ios`, then `xcodebuild build` of `ThingsMapper` and `ThingsMapperPaid` for the iOS simulator with `CODE_SIGNING_ALLOWED=NO` | both targets build; the Kotlin framework is built by the Xcode build phase; no manual step |
+| TC-IO-02 | Swift reaches the libraries | S (CI) | REQ-P-010, NF-045 | `xcodebuild test` on an iOS simulator for both targets: the XCTest calls `ThingsMapperKit` (version string, one `core` function with a known result, edition constant) | correct values; edition is `free` for `ThingsMapper` and `paid` for `ThingsMapperPaid` |
+| TC-IO-03 | Mac developer setup | X | REQ-P-010 | on LAB-Mac, starting from a clean Mac: follow `app/ios/README.md` from clone to the app in the simulator; then with a personal team in `Local.xcconfig` on an iPhone | works without steps missing from the README (otherwise the README is fixed); `git status` shows no signing data or generated project to commit |
+
 ## 7. Field test protocol
 
 **Preparation.** Charge devices to 100 %; node transmitting every 10 s at
@@ -451,7 +461,7 @@ diagnostics bundle from Things Mapper; read `batterystats` for phone A.
 
 | Requirement | Test cases |
 |---|---|
-| REQ-P-001…009 | TC-SE-03, TC-CA-*, TC-KI-01, TC-KI-08, TC-PK-01, 02, TC-CX-05, TC-LB-02, CI matrix (TDS-11), TC-DS-05, TC-ED-01 |
+| REQ-P-001…010 | TC-SE-03, TC-CA-*, TC-KI-01, TC-KI-08, TC-PK-01, 02, TC-CX-05, TC-LB-02, TC-IO-01…03, CI matrix (TDS-11), TC-DS-05, TC-ED-01 |
 | REQ-F-001…009 | TC-PR-01…10 |
 | REQ-F-010…015 | TC-SE-01…07 |
 | REQ-F-020…028 | TC-IN-01…16 |
@@ -504,7 +514,7 @@ and coverage.
 
 | Milestone | Must pass |
 |---|---|
-| M2.1 Foundation | all U/I tests of TC-IN, TC-RU, TC-PO (non-hardware), TC-ST-01/02/04/06, TC-UP-01…07, TC-RT-01/02; TC-LB-01…04; coverage gate |
+| M2.1 Foundation | all U/I tests of TC-IN, TC-RU, TC-PO (non-hardware), TC-ST-01/02/04/06, TC-UP-01…07, TC-RT-01/02; TC-LB-01…04; TC-PK-01/02 (bare desktop window); TC-IO-01/02 (iOS skeleton); coverage gate |
 | M2.2 Desktop MVP | TC-MA-*, TC-P-02/03 on desktop, TC-SE-01, TC-IS-*, TC-PO-05/06, TC-SO-06, TC-KI-09, TC-PK-01 |
 | M2.3 Android MVP | TC-SE-02…05, TC-PR-*, TC-SO-01/02, TC-ST-07, TC-DS-01…05, TC-P-01/03 on phone, TC-ED-01/02/13 |
 | M2.4 Parity | TC-F-01, TC-F-02, TC-F-05, TC-ST-09, TC-SO-03, TC-ED-15, TC-SU-01…04, 06…08, TGT-01/03 review |

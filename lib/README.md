@@ -27,9 +27,12 @@ lib/
 ├── ui/              Compose Multiplatform: screens, view models, theme
 ├── ads/             sponsor ad slot and policy (Free edition)
 ├── support/         funding data, start screen and support policies
-├── testing/         fixtures, fakes, contract test suites for the ports
-└── ios-umbrella/    phase 4: exports the libraries as one XCFramework for a SwiftUI shell
+└── testing/         fixtures, fakes, contract test suites for the ports
 ```
+
+The iOS app links the libraries through one framework, `ThingsMapperKit`,
+which the shell module `app/ios-kit` builds
+([ADR-0010](../design/adr/ADR-0010-ios-development-setup.md)).
 
 Build and test the libraries on their own from this folder with the
 wrapper at the repository root. On a host without an Android SDK, the

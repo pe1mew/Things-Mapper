@@ -56,14 +56,35 @@ software. Design documents carry their own revision table in their header.
   build of its own, `lib/`. The shells form the build `app/`, which
   includes `lib/` as a composite build. The libraries are tested on every
   target (JVM, Android, iOS simulator on a macOS CI runner), and every
-  platform implementation of a port runs the same contract suite. A
-  SwiftUI iOS shell gets the libraries as one XCFramework. Changes:
+  platform implementation of a port runs the same contract suite. Changes:
   - new requirement REQ-NF-045;
-  - TDS §2.1, §3 (build column, `ios-umbrella`), §11 (`lib.yml`,
-    `app.yml`) and TDS-R-12;
+  - TDS §2.1, §3 (build column), §11 (`lib.yml`, `app.yml`) and
+    TDS-R-12;
   - test environment CI-iOS and test cases TC-LB-01…04;
   - WP-2.1 and WP-4.1;
   - new `lib/README.md`, and `app/README.md` now covers the shells only.
+- ADR-0010 iOS development setup (2026-10-25). The repository is ready for
+  iOS development on a Mac from phase 2 on:
+  - The iOS shell consists of `app/ios-kit` (Kotlin; builds the one
+    framework `ThingsMapperKit`) and `app/ios/` (an XcodeGen `project.yml`;
+    the `.xcodeproj` is generated and not committed).
+  - Xcode builds the Kotlin framework through Gradle's
+    `embedAndSignAppleFrameworkForXcode`.
+  - Free and Paid editions are two targets.
+  - Signing data stays out of the repository (`Local.xcconfig`,
+    git-ignored).
+  - WP-2.1 creates a skeleton app that CI builds and tests on every pull
+    request.
+
+  New: requirement REQ-P-010, TDS-9.7, module `ios-kit` (TDS-3.12,
+  replacing `lib/ios-umbrella` of the first ADR-0009 draft), test cases
+  TC-IO-01…03, test environment LAB-Mac, risks TDS-R-13 and R-15,
+  `app/ios/README.md` (guide for Mac developers), Xcode entries in
+  `.gitignore`, and `.gitattributes` (LF line endings).
+- Early packaging check (2026-10-25): WP-2.1 packages a bare desktop window
+  as `.deb` for x86_64 and arm64 and runs the install tests TC-PK-01/02, so
+  packaging problems surface in M2.1 instead of M2.2 and M3.1. WP-2.1 is
+  now size L.
 
 **Changed**
 - Linux design fixes (2026-10-25):

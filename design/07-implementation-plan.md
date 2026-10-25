@@ -9,7 +9,8 @@ Status: **Draft**
 | 0.3 | 2026-10-24 | R. Welling (with Claude) | Sponsor catalogue is the only ad source (OP-7); licence route L-A (OP-8); no ad consent |
 | 0.4 | 2026-10-24 | R. Welling (with Claude) | Free start screen; cost awareness and voluntary support (ADR-0008); budget per milestone |
 | 0.5 | 2026-10-25 | R. Welling (with Claude) | Linux fixes in WP-2.11 and WP-3.1: `.deb` built in `debian:12` with install tests, kiosk unit started by the session, settings with atomic writes, provisioning-file precedence, secret-file owner/mode check |
-| 0.6 | 2026-10-25 | R. Welling (with Claude) | ADR-0009: WP-2.1 sets up the library build `lib/` and the shell build `app/`, `lib.yml` with an iOS simulator job, `app.yml`; M2.1 exit adds TC-LB; WP-4.1 consumes the libraries through `ios-umbrella` |
+| 0.6 | 2026-10-25 | R. Welling (with Claude) | ADR-0009: WP-2.1 sets up the library build `lib/` and the shell build `app/`, `lib.yml` with an iOS simulator job, `app.yml`; M2.1 exit adds TC-LB |
+| 0.7 | 2026-10-25 | R. Welling (with Claude) | WP-2.1 also carries the early packaging check (bare desktop window as `.deb`, x86_64 and arm64, TC-PK-01/02) and the iOS skeleton of ADR-0010 (`app/ios-kit`, XcodeGen project, macOS CI job, TC-IO-01/02); WP-2.1 size L; WP-2.11, WP-3.1 and WP-4.1 build on them; risk R-15 |
 
 Related: [02 Requirements](02-requirements.md), [05 TDS](05-tds.md)
 (what is built), [06 Test plan](06-test-plan.md) (exit criteria per
@@ -30,6 +31,10 @@ milestone), [changelog](../changelog.md).
 - **Parity, then new ground.** Phase 2 ends with feature parity with TTN
   Mapper v3 on Android and desktop (TGT-01). Phase 3 adds what the original
   never had: the Pi kiosk and Android Auto.
+- **Every platform from the first build.** WP-2.1 already packages a bare
+  desktop window as `.deb` for x86_64 and arm64 and builds a skeleton iOS
+  app in CI, so packaging problems show up in week one and phase 4 starts
+  from a working Xcode project (ADR-0010).
 - **Small releases.** Every milestone produces installable artefacts
   (GitHub pre-release); the Play internal track starts at M2.3.
 - **AI-assisted, human-verified.** Development continues with Claude under
@@ -47,7 +52,7 @@ no new High defects.
 | Milestone | Content | Exit (test plan §11) | Artefacts |
 |---|---|---|---|
 | **Phase 1 — Design** (done with this repository state) | Evaluation, requirements, FDS, GUI, TDS, test plan, this plan, ADRs | design review checklist | `design/` |
-| **M2.1 Foundation** | Repository/build/CI, core domain and ports, adapters with fixtures, pipeline, SQLDelight store and outbox, upload worker against stub, replay tool | U/I suites, TC-LB, coverage gate | `core`, `data`, `net` libraries (build `lib/`); `thingsmapper-replay` |
+| **M2.1 Foundation** | Repository/build/CI with the early packaging check and the iOS skeleton, core domain and ports, adapters with fixtures, pipeline, SQLDelight store and outbox, upload worker against stub, replay tool | U/I suites, TC-LB, TC-PK-01/02, TC-IO-01/02, coverage gate | `core`, `data`, `net` libraries (build `lib/`); `thingsmapper-replay`; CI artefacts: bare-window `.deb` (amd64, arm64), iOS simulator build |
 | **M2.2 Desktop MVP** | Map renderer spike and go/no-go, desktop shell with map, indicators, session control, gpsd/NMEA/replay sources, profiles editor, TLS MQTT | TC-MA, TC-P-02/03 desktop, TC-PK-01 | `thingsmapper_0.1.0_amd64.deb` (pre-release) |
 | **M2.3 Android MVP** | Android shell: onboarding, profiles, foreground service, map, drive view, upload with consent, secure store, diagnostics | TC-SE, TC-PR, TC-SO, TC-DS | APKs 0.2.0 (`freeFoss`, `paidFoss`), Play internal track for both editions |
 | **M2.4 Parity release** | Sessions, exports (CSV/GeoJSON), statistics, alerts/sounds, legacy import, Dutch translation, editions and ad slot (WP-2.16), field tests, ingress coordination (OP-1) | TC-F-01/02/05, TC-ED, TGT-01/03 | 0.3.0 APK + deb; closed beta |
@@ -66,7 +71,7 @@ parties. Sizes: S ≈ 0.5–1 week, M ≈ 1–2, L ≈ 2–4.
 
 | WP | Title | Scope and deliverables | Depends on | Requirements | Size | Milestone |
 |---|---|---|---|---|---|---|
-| WP-2.1 | Repository and build | Two Gradle KTS builds per ADR-0009 — `lib/` with the library modules (targets `jvm`, `android` where an SDK is configured, `iosArm64`, `iosSimulatorArm64`) and `app/` with the shell modules, joined as a composite build (TDS §3); root wrapper, shared version catalogue and convention plugins, ktlint/detekt, ABI dumps, contract-suite scaffolding in `testing`, GitHub Actions `lib.yml` (Ubuntu and macOS iOS-simulator job) and `app.yml`, coverage gate, SPDX headers with the additional-permission line (license.md), PR checklist item "no upstream code copied", issue/PR templates, `lib/README.md` and `app/README.md`, `CLAUDE.md` for the code base; TC-LB-01, 02, 04 | — | REQ-NF-042, REQ-NF-045, REQ-C-001 | M | M2.1 |
+| WP-2.1 | Repository and build | Two Gradle KTS builds per ADR-0009 — `lib/` with the library modules (targets `jvm`, `android` where an SDK is configured, `iosArm64`, `iosSimulatorArm64`) and `app/` with the shell modules, joined as a composite build (TDS §3); root wrapper, shared version catalogue and convention plugins, ktlint/detekt, ABI dumps, contract-suite scaffolding in `testing`, GitHub Actions `lib.yml` (Ubuntu and macOS iOS-simulator job) and `app.yml`, coverage gate, SPDX headers with the additional-permission line (license.md), PR checklist item "no upstream code copied", issue/PR templates, `lib/README.md` and `app/README.md`, `CLAUDE.md` for the code base; **early packaging check:** a bare `desktop` window with `--version`, `packageDeb` x86_64 and arm64 in the `debian:12` container with the install tests (`desktop.yml`, TDS-9.3); **iOS skeleton** per ADR-0010: `app/ios-kit`, XcodeGen project `app/ios/` with Free and Paid targets, `Local.xcconfig.example`, `app/ios/README.md`, macOS job in `app.yml`; TC-LB-01, 02, 04, TC-PK-01/02, TC-IO-01/02 | — | REQ-NF-042, REQ-NF-045, REQ-P-010, REQ-C-001, REQ-C-008 | L | M2.1 |
 | WP-2.2 | Core domain, ports, rules | Domain model, value classes, ports, `Level`/`LevelClass`, gateway validation, normalisation, freshness, fix selection; unit tests TC-RU, TC-PO-01…03 | WP-2.1 | REQ-F-040…047, REQ-F-031…033 | M | M2.1 |
 | WP-2.3 | Protocol adapters and fixtures | `TtsV3Adapter`, `ChirpStackV4Adapter`, Packet Broker rules, adapter registry, `ProfileFieldSpec`; fixtures FIX-TTS/CS4/CS3/BAD recorded and anonymised; TC-IN-01…08 | WP-2.2, NS-TTS/NS-CS4 access | REQ-F-020…024, REQ-F-008 | L | M2.1 |
 | WP-2.4 | **Map renderer spike** | Projection, tile set, `DrawTarget`, tile cache, point/line/marker layers, Compose `MapView`; benchmark scene (20 k points/lines) on desktop and Pi 4; **go/no-go on ADR-0003** (fallback MapComposeMP) | WP-2.1 | REQ-F-060…064, REQ-NF-003 | L | M2.2 |
@@ -76,7 +81,7 @@ parties. Sizes: S ≈ 0.5–1 week, M ≈ 1–2, L ≈ 2–4.
 | WP-2.8 | Upload workers and payload | `IngressPayloadBuilder` with golden files (incl. equality with TTN Mapper v3 outputs), workers with retry schedule, custom endpoint, connectivity monitor, stub ingress for tests; TC-UP-01…08 | WP-2.5, 2.6 | REQ-F-080…088 | M | M2.1 |
 | WP-2.9 | Replay tool | `record`, `publish`, `track`, `demo`; JSON-lines format; `ReplayLink`/`ReplayPositionSource`; TC-RT | WP-2.7 | REQ-F-140, 141 | S | M2.1 |
 | WP-2.10 | UI foundation | Compose Multiplatform module: theme tokens, typography, navigation, adaptive scaffolds, resources/i18n infrastructure, chip components, view-model base; screenshot test harness | WP-2.1 | REQ-NF-030, 031, REQ-F-102 | M | M2.2 |
-| WP-2.11 | Desktop shell | `main()`, window, DI wiring, provisioning file (TOML, precedence of FDS §3.7), settings store with atomic writes (TDS-5.3), gpsd and NMEA sources, XDG paths, logging with rotation, `--version`, `packageDeb` x86_64 in the `debian:12` build container with install test; screens: map, drive view, profiles/editor, settings (subset), diagnostics; TC-PO-05/06, TC-MA-06…08, TC-SO-06, TC-KI-09, TC-PK-01 | WP-2.4, 2.6…2.10 | REQ-P-003, REQ-F-030, 060…067, 070, 072, REQ-C-008 | L | M2.2 |
+| WP-2.11 | Desktop shell | `main()`, window, DI wiring, provisioning file (TOML, precedence of FDS §3.7), settings store with atomic writes (TDS-5.3), gpsd and NMEA sources, XDG paths, logging with rotation, `--version`, the full application through the packaging pipeline of WP-2.1 (x86_64); screens: map, drive view, profiles/editor, settings (subset), diagnostics; TC-PO-05/06, TC-MA-06…08, TC-SO-06, TC-KI-09, TC-PK-01 | WP-2.4, 2.6…2.10 | REQ-P-003, REQ-F-030, 060…067, 070, 072, REQ-C-008 | L | M2.2 |
 | WP-2.12 | Android shell | Application, `MainActivity`, `MappingService`, notification with Stop, permissions flow, `LocationManagerSource` + `GnssStatus`, secure store (Keystore), sounds, flavours `foss`/`play`, R8; screens: onboarding, map, drive, profiles/editor, settings, diagnostics; TC-SE-02…05, TC-PR-*, TC-SO-01/02, TC-DS-*; Play internal track | WP-2.10, 2.11 | REQ-P-001, 008, REQ-F-011, 014, 015, 090, 092, 100, 101, REQ-NF-021, 060 | L | M2.3 |
 | WP-2.13 | Sessions, statistics, export/import | Sessions and session detail screens, statistics engine and screen, CSV/GeoJSON exporters (streamed), SAF/share on Android, legacy CSV import, retention warning; TC-ST-03…10, TC-IS-03/04 | WP-2.12 | REQ-F-051…055, 065, 071, 073 | M | M2.4 |
 | WP-2.14 | Alerts, sounds, polish | Alert engine, packet sound picker, legend, gateway sheet, earlier sessions on map, keep-screen-on, Dutch translation, accessibility pass; TC-AL, TC-SO-03, TC-CX-01/02 | WP-2.13 | REQ-F-066, 090, 091, REQ-NF-033, 034 | M | M2.4 |
@@ -88,7 +93,7 @@ parties. Sizes: S ≈ 0.5–1 week, M ≈ 1–2, L ≈ 2–4.
 
 | WP | Title | Scope and deliverables | Depends on | Requirements | Size | Milestone |
 |---|---|---|---|---|---|---|
-| WP-3.1 | Kiosk shell | Kiosk scaffold for 800×480 and 720×1280, on-screen keyboard, long-press exit, provisioning file with secrets from file/env (owner/mode check), systemd user unit started from the session autostart, arm64 `.deb` built in the `debian:12` container on an arm64 runner with install test, software-rendering default decision, Pi guide in `documentation/` (autologin, labwc autostart lines, secret-file ownership); TC-KI-01…04, TC-KI-08, TC-PK-02 | WP-2.11, 2.15 | REQ-P-004, REQ-F-130, 131, 134, REQ-C-008 | L | M3.1 |
+| WP-3.1 | Kiosk shell | Kiosk scaffold for 800×480 and 720×1280, on-screen keyboard, long-press exit, provisioning file with secrets from file/env (owner/mode check), systemd user unit started from the session autostart, the full kiosk as arm64 `.deb` through the packaging pipeline of WP-2.1, software-rendering default decision, Pi guide in `documentation/` (autologin, labwc autostart lines, secret-file ownership); TC-KI-01…04, TC-KI-08, TC-PK-02 | WP-2.11, 2.15 | REQ-P-004, REQ-F-130, 131, 134, REQ-C-008 | L | M3.1 |
 | WP-3.2 | Kiosk resilience and Pi field test | Connectivity toggling, cache behaviour, unsynced-clock flag, optional status page, 4 h drive test TC-F-03, performance TC-P-01/03 on Pi 4 (decide Pi 4 vs Pi 5 minimum, OP-6) | WP-3.1 | REQ-F-132, 133, 135, TGT-04 | M | M3.1 |
 | WP-3.3 | Android Auto (Paid edition) | Car App service in the `paid` source set, `MapCarScreen` with `SurfaceCallback` renderer, profiles list, fallback grid/list behind build flag, host validator, DHU tests TC-CA-01…04/06, car location source; Play "Android Auto" review submission (OP-3) | WP-2.12, 2.4 | REQ-P-002, REQ-F-120…123 | L | M3.2 |
 | WP-3.4 | Car field test and quality checklist | Real head unit test TC-F-04, checklist TC-CA-05, night mode, fixes | WP-3.3 | REQ-NF-032, TGT-05 | S | M3.2 |
@@ -100,7 +105,7 @@ parties. Sizes: S ≈ 0.5–1 week, M ≈ 1–2, L ≈ 2–4.
 
 | WP | Title | Note |
 |---|---|---|
-| WP-4.1 | iOS shell | The libraries already build and pass their tests on the iOS simulator in CI (ADR-0009); a SwiftUI shell consumes them through `lib/ios-umbrella` as one XCFramework via Swift Package Manager, a Compose shell links them directly; decide how flows and `suspend` functions reach Swift (wrappers or Kotlin Swift export); needs Darwin HTTP engine, an MQTT implementation (CocoaMQTT via expect/actual or a pure-Kotlin client), Core Location source, `CoreGraphicsDrawTarget`; needs the Apple hardware of doc 08 (I-11…I-13) after the OP-11 decision; Free and Paid editions per REQ-P-009 (App Group import, sponsor ads from common code); App Store distribution of GPL software requires licence route OP-8 (ADR-0007 D5) |
+| WP-4.1 | iOS shell | Starts from the skeleton of ADR-0010 (`app/ios-kit`, XcodeGen project `app/ios/`, Free and Paid targets), which CI has built and tested since WP-2.1, and from libraries tested on the iOS simulator (ADR-0009); run TC-IO-03 on the first Mac; choose a Compose Multiplatform or a SwiftUI UI; decide how flows and `suspend` functions reach Swift (wrappers in `ios-kit` or Kotlin Swift export); needs Darwin HTTP engine, an MQTT implementation (CocoaMQTT via expect/actual or a pure-Kotlin client), Core Location source, `CoreGraphicsDrawTarget`; needs the Apple hardware of doc 08 (I-11…I-13) after the OP-11 decision; Free and Paid editions per REQ-P-009 (App Group import, sponsor ads from common code); App Store distribution of GPL software requires licence route OP-8 (ADR-0007 D5) |
 | WP-4.2 | Generic MQTT/JSON adapter | Proves TGT-08 |
 | WP-4.3 | Multi-device sessions and device colouring | REQ-F-005 extension |
 | WP-4.4 | Android Automotive OS packaging | Same car module, AAOS target and Play AAOS review |
@@ -113,7 +118,7 @@ gantt
     dateFormat  X
     axisFormat  %s
     section M2.1 Foundation
-    WP-2.1 Repo and build          :a1, 0, 2
+    WP-2.1 Repo and build          :a1, 0, 3
     WP-2.2 Core domain and rules   :a2, after a1, 2
     WP-2.3 Adapters and fixtures   :a3, after a2, 3
     WP-2.5 Storage and outbox      :a5, after a2, 2
@@ -147,7 +152,7 @@ Critical path: WP-2.1 → 2.2 → 2.5 → 2.6 → 2.7 → 2.9 → 2.11 → 2.12 
 2.14 → 2.15 → 3.1/3.3 → 3.5 → 3.6. The map spike (WP-2.4) runs in parallel
 with the core packages and must conclude before WP-2.11 starts.
 
-Indicative totals: phase 2 ≈ 36 person-weeks, phase 3 ≈ 16 person-weeks.
+Indicative totals: phase 2 ≈ 37 person-weeks, phase 3 ≈ 16 person-weeks.
 At a part-time pace these are calendar quarters, not weeks; the milestones
 are ordered so that something usable exists from M2.2 onwards.
 
@@ -212,6 +217,7 @@ Versioning: 0.x pre-releases per milestone (0.1 M2.2, 0.2 M2.3, 0.3 M2.4,
 | R-12 | The EU DSA trader declaration publishes the publisher's address and phone number | H / M | Decide the contact details before WP-3.7 (OP-10) |
 | R-13 | Awareness measures perceived as nagging, hurting reviews | M / M | One start screen (Free only), at most one card a year, thank-you tone, no countdowns (ADR-0008 D7); watch reviews and adjust |
 | R-14 | Hardware costs higher than estimated | M / L | Ranges in doc 08; refurbished hardware; Apple purchase gated by OP-11 |
+| R-15 | The iOS skeleton decays before anybody in the project has a Mac | M / M | macOS CI job on every pull request (TC-IO-01/02); Xcode version selected explicitly; toolchain upgrades at milestone boundaries (R-5); README verified on the first Mac (TC-IO-03) |
 
 ## 8. Entry criteria for phase 2
 

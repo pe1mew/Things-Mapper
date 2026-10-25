@@ -48,11 +48,11 @@ types.
 
 **D1 — Two builds (option B).**
 - `lib/` is a standalone Gradle build with the libraries `core`, `data`,
-  `net`, `map`, `ui`, `ads`, `support` and `testing`, plus
-  `ios-umbrella` in phase 4 (D7).
-- `app/` is the build of the shells `android`, `desktop` and
-  `tools/replay`. It includes `lib/` as a composite build and depends on
-  the coordinates `nl.pe1mew.thingsmapper:<library>`.
+  `net`, `map`, `ui`, `ads`, `support` and `testing`.
+- `app/` is the build of the shells `android`, `desktop`, `tools/replay`
+  and `ios-kit`, the Kotlin side of the iOS shell (D7). It includes `lib/`
+  as a composite build and depends on the coordinates
+  `nl.pe1mew.thingsmapper:<library>`.
 - The convention plugins (`build-logic/`), the version catalogue
   (`gradle/libs.versions.toml`) and the Gradle wrapper sit at the
   repository root and are used by both builds, so both use the same
@@ -117,16 +117,18 @@ request:
   source.
 
 **D7 — iOS consumption.**
-- A Compose Multiplatform iOS shell links the libraries directly as part
-  of the Kotlin build.
-- A SwiftUI shell gets them through `lib/ios-umbrella`. That module exports
-  the libraries as **one** XCFramework — one Kotlin runtime and shared
-  types — and Xcode consumes it through Swift Package Manager as a binary
-  target.
+- The Xcode project links exactly **one** Kotlin framework — one Kotlin
+  runtime and shared types. The iOS shell's Kotlin module `app/ios-kit`
+  builds it, whether the UI is Compose Multiplatform or SwiftUI.
+- The layout, the Xcode project and the integration are set out in
+  [ADR-0010](ADR-0010-ios-development-setup.md).
+- *Amended 2026-10-25 by ADR-0010, before this ADR was merged:* the first
+  version placed this framework in a `lib/ios-umbrella` module. It moved to
+  `app/` because it is the shell's artefact and is needed for both UI
+  options.
 - The public API that Swift will see avoids Kotlin-only constructs.
   Whether flows and `suspend` functions reach Swift through wrappers in
-  the umbrella module or through Kotlin's Swift export is decided in
-  WP-4.1.
+  `ios-kit` or through Kotlin's Swift export is decided in WP-4.1.
 
 **D8 — Versions and publication.**
 - `lib/` carries its own version (SemVer, in step with the 0.x
@@ -157,7 +159,7 @@ request:
 
 ## Links
 
-[ADR-0002](ADR-0002-technology-stack.md),
+[ADR-0002](ADR-0002-technology-stack.md), [ADR-0010](ADR-0010-ios-development-setup.md),
 [05 TDS §2.1, §3, §11](../05-tds.md),
 [02 Requirements REQ-NF-045, REQ-P-005](../02-requirements.md),
 [06 Test plan §4, §6.23](../06-test-plan.md),

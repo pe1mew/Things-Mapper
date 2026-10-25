@@ -10,7 +10,8 @@ Status: **Draft**
 | 0.4 | 2026-10-24 | R. Welling (with Claude) | Free start screen; cost awareness and voluntary support (ADR-0008); budget per milestone |
 | 0.5 | 2026-10-24 | R. Welling (with Claude) | Package root `nl.pe1mew.thingsmapper` confirmed (TDS-OP-1 closed) |
 | 0.6 | 2026-10-25 | R. Welling (with Claude) | Linux fixes: `.deb` built in a `debian:12` container with install tests (TDS-9.3, TDS-11, TDS-R-10); kiosk unit started by the graphical session (TDS-9.3, TDS-R-11); JVM settings in `settings.properties` with atomic writes instead of `Preferences` (TDS-5.3); secret-file owner/mode check (TDS-5.4); provisioning-file precedence and `--version` (TDS-9.3) |
-| 0.7 | 2026-10-25 | R. Welling (with Claude) | Shared code as libraries in their own build `lib/`, shells in `app/` (ADR-0009): drivers, dependency rule, module structure with build column and iOS simulator target, `ios-umbrella`, contract suites, `lib.yml`/`app.yml`, TDS-R-12 |
+| 0.7 | 2026-10-25 | R. Welling (with Claude) | Shared code as libraries in their own build `lib/`, shells in `app/` (ADR-0009): drivers, dependency rule, module structure with build column and iOS simulator target, contract suites, `lib.yml`/`app.yml`, TDS-R-12 |
+| 0.8 | 2026-10-25 | R. Welling (with Claude) | iOS development setup (ADR-0010): TDS-9.7 iOS shell, module `ios-kit` (TDS-3.12) in `app/` instead of `lib/ios-umbrella`, iOS node in §2.1, macOS app job in CI, XcodeGen, TDS-R-13 |
 
 Related: [02 Requirements](02-requirements.md), [03 FDS](03-fds.md),
 [04 GUI design](04-gui-design.md), [06 Test plan](06-test-plan.md),
@@ -46,6 +47,7 @@ blueprint for phase 2 and 3 of the implementation plan.
 | Free edition with ads, Paid edition without ads and with Android Auto, otherwise identical | REQ-F-150…162 | Edition as build-time constant; ads behind the `AdProvider` port in module `ads`; car service in the `paid` source set only (TDS-9.5, [ADR-0007](adr/ADR-0007-editions-and-monetisation.md)) |
 | Cost awareness and voluntary support without tracking | REQ-F-163…167, REQ-C-011 | Signed funding file with the sponsor-catalogue verifier; module `support` with store billing only in the `play` variants (TDS-9.6, [ADR-0008](adr/ADR-0008-cost-awareness-and-support.md)) |
 | Shared parts developed and tested as libraries, reused by every shell | REQ-NF-045 | Libraries in a Gradle build of their own (`lib/`), shells in `app/` joined as a composite build; contract test suites per port ([ADR-0009](adr/ADR-0009-shared-libraries.md)) |
+| iOS development possible on a Mac from phase 2, proved in CI | REQ-P-010 | iOS shell in `app/ios-kit` (Kotlin) and `app/ios/` (XcodeGen project); direct framework integration; skeleton built and tested on every pull request ([ADR-0010](adr/ADR-0010-ios-development-setup.md), TDS-9.7) |
 
 ### 1.3 Decisions
 
@@ -59,7 +61,8 @@ blueprint for phase 2 and 3 of the implementation plan.
 | [ADR-0006](adr/ADR-0006-mqtt-client.md) | MQTT port with HiveMQ MQTT Client as JVM/Android implementation |
 | [ADR-0007](adr/ADR-0007-editions-and-monetisation.md) | Free (ads) and Paid (no ads, Android Auto) editions; sponsor catalogue as the only ad source; licence route L-A with a GPLv3 §7 additional permission |
 | [ADR-0008](adr/ADR-0008-cost-awareness-and-support.md) | Cost page, *Why this update* release notes, yearly thank-you card, voluntary support (store billing or GitHub Sponsors), Paid price €6, no commercial services |
-| [ADR-0009](adr/ADR-0009-shared-libraries.md) | Shared code as libraries in the Gradle build `lib/`, tested on every target; the shells in `app/` include it as a composite build; one XCFramework for a SwiftUI iOS shell |
+| [ADR-0009](adr/ADR-0009-shared-libraries.md) | Shared code as libraries in the Gradle build `lib/`, tested on every target; the shells in `app/` include it as a composite build; Xcode links one Kotlin framework |
+| [ADR-0010](adr/ADR-0010-ios-development-setup.md) | iOS shell as `app/ios-kit` + XcodeGen project `app/ios/`; direct integration via `embedAndSignAppleFrameworkForXcode`; Free and Paid targets; signing outside the repository; skeleton in CI from WP-2.1 |
 
 ## 2. Architecture overview
 
@@ -71,6 +74,7 @@ flowchart TB
         AND[android: phone app,<br/>foreground service,<br/>Car App service]
         DESK[desktop: Compose for Desktop,<br/>kiosk, systemd, gpsd/NMEA]
         REPLAY[tools/replay CLI]
+        IOS[ios: Xcode app + ios-kit,<br/>skeleton from WP-2.1]
     end
     subgraph UI["ui (Compose Multiplatform, common)"]
         SCREENS[screens · view models · theme · adaptive layouts]
@@ -91,6 +95,7 @@ flowchart TB
     DESK --> UI
     AND --> Core
     DESK --> Core
+    IOS --> Core
     REPLAY --> Core
     UI --> Core
     UI --> MAP
@@ -152,7 +157,9 @@ long as the process. Optional embedded status HTTP server.
 ## 3. Module structure (TDS-3)
 
 Two Gradle builds (ADR-0009): **`lib/`** holds the libraries — modules
-TDS-3.1…3.5 and 3.9…3.12 — and **`app/`** holds the shells TDS-3.6…3.8.
+TDS-3.1…3.5 and 3.9…3.11 — and **`app/`** holds the shells TDS-3.6…3.8 and
+3.12. The Xcode project of the iOS shell, `app/ios/`, is not a Gradle module
+(TDS-9.7).
 Every library builds for `jvm` (Linux desktop and Pi), `android`,
 `iosArm64` and `iosSimulatorArm64`. Apple targets build on macOS hosts only;
 the Android target is enabled where an Android SDK is configured. CI has
@@ -171,7 +178,7 @@ both, so every pull request covers every target.
 | `testing` (TDS-3.9) | lib | KMP library (test fixtures) | all | Fixture messages, fake ports, golden files, contract test suites per port (ADR-0009 D5) |
 | `ads` (TDS-3.10) | lib | KMP library | android, jvm, iOS | `AdProvider` port, `AdPolicy`, `NoAdProvider`, `SponsorAdProvider` (TDS-9.5) |
 | `support` (TDS-3.11) | lib | KMP library | android, jvm, iOS | `FundingRepository`, `StartScreenPolicy`, `YearlyCardPolicy`, `SupportPort`; providers: Play Billing (Android `play` variants), external link (`foss`, desktop), StoreKit (iOS later) (TDS-9.6) |
-| `ios-umbrella` (TDS-3.12) | lib | KMP library (framework export) | iOS | Phase 4, only for a SwiftUI shell: exports the libraries as one XCFramework (one Kotlin runtime, shared types) for Swift Package Manager (ADR-0009 D7) |
+| `ios-kit` (TDS-3.12) | app | KMP module (Apple framework) | iOS | Kotlin side of the iOS shell: builds the one static framework `ThingsMapperKit` that the Xcode project links; exports the library API for Swift and/or provides the Compose entry `MainViewController()`; iOS wiring and iOS-only port implementations (phase 4) (TDS-9.7, ADR-0010) |
 
 Package root: `nl.pe1mew.thingsmapper` (confirmed by the maintainer on
 2026-10-24, TDS-OP-1 closed). Android `applicationId` = package root for the Free
@@ -658,7 +665,7 @@ object AdPolicy {                              // pure, exhaustively unit-tested
 #### iOS (phase 4)
 
 Two bundle ids (`nl.pe1mew.thingsmapper`, `nl.pe1mew.thingsmapper.paid`),
-edition from build configuration; `SponsorAdProvider` is common code; no
+edition from build configuration — two Xcode targets, TDS-9.7; `SponsorAdProvider` is common code; no
 App Tracking Transparency prompt (no tracking); App Store distribution
 relies on additional permission (b) in license.md (ADR-0007 D5).
 
@@ -725,6 +732,26 @@ interface SupportPort {
   testers for TC-SU-05, Data Safety "purchase history" for the `play`
   variants.
 
+### 9.7 iOS shell (TDS-9.7)
+
+The full iOS shell is phase 4 (WP-4.1). From WP-2.1 on, the repository
+holds a skeleton that a developer can run on a Mac and that CI builds and
+tests on every pull request ([ADR-0010](adr/ADR-0010-ios-development-setup.md),
+REQ-P-010).
+
+| Element | Design |
+|---|---|
+| Kotlin side | `app/ios-kit` (TDS-3.12): targets `iosArm64` and `iosSimulatorArm64`; depends on the libraries of `lib/`; builds the static framework `ThingsMapperKit` — the only Kotlin framework in the app |
+| Xcode side | `app/ios/`: `project.yml` (XcodeGen — the only project definition), `ThingsMapper/` (Swift sources with the `@main` SwiftUI app, asset catalogue, `Info.plist`), `ThingsMapperTests/` (XCTest), `Configuration/` (xcconfig files). The `.xcodeproj` is generated with `xcodegen generate` and not committed |
+| Framework integration | A build phase of each app target runs before compilation. It sets `JAVA_HOME` with `/usr/libexec/java_home -v 21`, then the root Gradle wrapper runs `ios-kit`'s `embedAndSignAppleFrameworkForXcode` with `-Pthingsmapper.edition=$THINGSMAPPER_EDITION`. `ENABLE_USER_SCRIPT_SANDBOXING = NO` for these targets, because the script reads the repository. No CocoaPods; Swift package dependencies, if ever needed, are declared in `project.yml` |
+| Editions | Two app targets from the same sources: `ThingsMapper` (Free, `nl.pe1mew.thingsmapper`) and `ThingsMapperPaid` (Paid, `nl.pe1mew.thingsmapper.paid`, TDS-OP-4). `THINGSMAPPER_EDITION` (`free` / `paid`) becomes Kotlin's build-time `Edition` constant (TDS-9.5). The App Group for the Free → Paid import (FDS-17.5) is added in WP-4.1 |
+| Signing | Not in the repository. `Configuration/Base.xcconfig` ends with `#include? "Local.xcconfig"`; each developer copies `Local.xcconfig.example` to the git-ignored `Local.xcconfig` and sets `DEVELOPMENT_TEAM`; signing is automatic. CI builds for the simulator with `CODE_SIGNING_ALLOWED=NO`; release signing in phase 4 comes from CI secrets |
+| Skeleton (WP-2.1) | One SwiftUI screen with the version and a value computed by `core`, which proves the Swift → Kotlin link; an XCTest target calling into `ThingsMapperKit` that also checks the edition constant per target |
+| Toolchain on the Mac | macOS on Apple silicon; Xcode (the current release that the pinned Kotlin version supports); JDK 21; Homebrew; XcodeGen (version pinned in `app/ios/README.md` and CI); IntelliJ IDEA or Android Studio with the Kotlin Multiplatform plugin for the Kotlin code. No Android SDK needed (ADR-0009 D4) |
+| Deployment target | Set in `project.yml`: the lowest iOS version that the pinned Kotlin and Compose Multiplatform versions support; chosen in WP-2.1, reviewed in WP-4.1 |
+| CI | macOS job of `app.yml`: install the pinned XcodeGen, select the Xcode version, `xcodegen generate`, `xcodebuild build` of both targets and `xcodebuild test` on an iOS simulator (TC-IO-01/02) |
+| Phase 4 (WP-4.1) | Choice between a Compose Multiplatform and a SwiftUI UI; Darwin HTTP engine, MQTT client, Core Location source, `CoreGraphicsDrawTarget`, Keychain secret store; App Group; App Store signing and listings |
+
 ## 10. Cross-cutting mechanisms (TDS-10)
 
 ### 10.1 Dependency injection
@@ -779,7 +806,7 @@ SemVer for the software (`MAJOR.MINOR.PATCH`), Android `versionCode` =
 | Toolchain | JDK 21 (Temurin), Kotlin and Compose Multiplatform latest stable at WP-2.1, AGP matching; Gradle wrapper with configuration cache |
 | Static analysis | `ktlint` (Gradle plugin), `detekt` with the project rule set, Android Lint (`warningsAsErrors` for `HardcodedText`, `MissingPermission`, `UnusedResources`), a custom detekt rule forbidding `println`/`Log` outside the logging sink |
 | Tests | Library tests in `commonTest`, run on every target — JVM, Android host and iOS simulator (`kotlin.test`, Turbine for flows, `kotest-assertions`); contract suites from `testing` run by every implementation of a port (ADR-0009 D5); SQLDelight verification, Android instrumentation for the service and secret store, Compose UI tests (desktop runner), integration tests with a Mosquitto container (Testcontainers) driven by the replay tool, screenshot tests for the wireframe screens |
-| CI (GitHub Actions) | `lib.yml` (ADR-0009 D6): ktlint, detekt, ABI check, coverage gate, JVM and Android host tests of the libraries on `ubuntu-latest`, iOS simulator tests on `macos-latest`; `app.yml`: lint and tests of the shells against the library source on `ubuntu-latest`; `android.yml`: assemble the `freeFoss` and `paidFoss` debug APKs, run instrumentation for both editions on an emulator (API 30, 34), check merged manifests (no `AD_ID` and no ad classes in `paid*`, no `CarAppService` in `free*`); `desktop.yml`: `packageDeb` in a `debian:12` container on `ubuntu-24.04` (x86_64) and `ubuntu-24.04-arm` (aarch64) runners (TDS-9.3), then the install test in clean containers — x86_64: `debian:12`, `debian:13`, `ubuntu:22.04` and the newest Ubuntu LTS (TC-PK-01); arm64: `debian:12` and `debian:13`, the bases of Raspberry Pi OS Bookworm and Trixie (TC-PK-02) |
+| CI (GitHub Actions) | `lib.yml` (ADR-0009 D6): ktlint, detekt, ABI check, coverage gate, JVM and Android host tests of the libraries on `ubuntu-latest`, iOS simulator tests on `macos-latest`; `app.yml`: lint and tests of the shells against the library source on `ubuntu-latest`, plus a `macos-latest` job that generates the Xcode project and builds and tests the iOS app for the simulator, both editions (TDS-9.7); `android.yml`: assemble the `freeFoss` and `paidFoss` debug APKs, run instrumentation for both editions on an emulator (API 30, 34), check merged manifests (no `AD_ID` and no ad classes in `paid*`, no `CarAppService` in `free*`); `desktop.yml`: `packageDeb` in a `debian:12` container on `ubuntu-24.04` (x86_64) and `ubuntu-24.04-arm` (aarch64) runners (TDS-9.3), then the install test in clean containers — x86_64: `debian:12`, `debian:13`, `ubuntu:22.04` and the newest Ubuntu LTS (TC-PK-01); arm64: `debian:12` and `debian:13`, the bases of Raspberry Pi OS Bookworm and Trixie (TC-PK-02) |
 | Release | Tag → `release.yml` builds signed APK/AAB (`freePlay` and `paidPlay` AABs for the two Play listings, `freeFoss` APK for GitHub/F-Droid per OP-9) with signing material from repository secrets, `.deb` x86_64 and arm64, `SHA256SUMS`, licence report (`licensee`), CycloneDX SBOM; changelog section becomes the release notes, which must contain a *Why this update* line (store changelog files in fastlane format per `versionCode`, also read by F-Droid; CI fails without it) |
 | Distribution | GitHub Releases (desktop/Pi `.deb`; Android `freeFoss` per OP-9), Google Play Free and Paid listings (internal → closed → production tracks), F-Droid (reproducible `freeFoss` build, later, OP-9), App Store Free and Paid (phase 4), `.deb` repository (later) |
 
@@ -797,6 +824,7 @@ SemVer for the software (`MAJOR.MINOR.PATCH`), Android `versionCode` =
 | Koin | all | Apache-2.0 | |
 | Kermit | all | Apache-2.0 | |
 | tomlkt | desktop | Apache-2.0 | |
+| XcodeGen | build tool (`app/ios`) | MIT | generates the Xcode project from `project.yml`; not shipped in the app |
 | jSerialComm | desktop | LGPL-3.0 / Apache-2.0 (dual) | dynamically linked, GPL-compatible |
 | dbus-java (optional) | desktop | MIT | Secret Service |
 | zxing-android-embedded | android | Apache-2.0 | QR import |
@@ -844,12 +872,13 @@ exact versions.
 | TDS-R-10 | Package dependency names differ between distribution releases (64-bit `time_t` renames such as `libasound2t64`): a `.deb` built on a newer release does not install on an older one | Build in a container of the oldest supported release (TDS-9.3); install test on every supported release (TC-PK-01/02) |
 | TDS-R-11 | The kiosk unit starts without the display environment (started at login instead of by the session) and fails or loops | Unit not enabled for `default.target`; started from the compositor autostart after `import-environment`; start limit; boot test TC-KI-08 |
 | TDS-R-12 | Composite-build configuration (two builds, shared `build-logic/` and catalogue) confuses tooling, or a library change breaks a shell | Root settings includes both builds so the IDE sees one project; `app.yml` runs on every pull request, so breakage shows in the same pull request; iOS job moves to nightly if the repository becomes private (macOS minutes) |
+| TDS-R-13 | The iOS skeleton breaks while nobody has a Mac: Xcode on the CI runner and the pinned Kotlin version drift apart, or `project.yml` errors go unseen | macOS job on every pull request with an explicitly selected Xcode version; toolchain upgrades at milestone boundaries; TC-IO-03 on the first Mac |
 
 ## 15. Traceability (requirements → design)
 
 | Requirement group | Design elements |
 |---|---|
-| REQ-P-001…009 | TDS-3 (targets), TDS-9.1, 9.2, 9.3, 9.5, TDS-8 (adaptive layouts), TDS-11 (arm64 build), variant `foss` |
+| REQ-P-001…010 | TDS-3 (targets), TDS-9.1, 9.2, 9.3, 9.5, 9.7, TDS-8 (adaptive layouts), TDS-11 (arm64 build, macOS jobs), variant `foss` |
 | REQ-F-001…009 | TDS-4.3 `ProfileService`, TDS-4.4 `ProfileFieldSpec`, TDS-5.4, TDS-8 |
 | REQ-F-010…015 | TDS-4.3 `SessionController`, TDS-9.1 `MappingService`, TDS-9.3 kiosk |
 | REQ-F-020…028 | TDS-4.4, TDS-6.1, TDS-2.3 |
