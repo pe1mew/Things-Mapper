@@ -8,6 +8,7 @@ Status: **Draft**
 | 0.2 | 2026-10-24 | R. Welling (with Claude) | Project renamed to Things Mapper; FDS-17 editions and advertising; car mode Paid-only; onboarding and settings additions |
 | 0.3 | 2026-10-24 | R. Welling (with Claude) | Sponsor catalogue is the only ad source (OP-7); licence route L-A (OP-8); no ad consent |
 | 0.4 | 2026-10-24 | R. Welling (with Claude) | Free start screen; cost awareness and voluntary support (ADR-0008) |
+| 0.5 | 2026-10-25 | R. Welling (with Claude) | Linux fixes: provisioning-file precedence (one file, not merged), secret files owned by the running user with no group/other bits, relative secret paths; kiosk unit started by the graphical session (§3.7, FDS-15.2, FDS-15.3) |
 
 Related: [02 Requirements](02-requirements.md) (every function lists the
 requirements it realises), [04 GUI design](04-gui-design.md) (screens
@@ -366,8 +367,20 @@ optionally one `LineString` per reception with a valid gateway location
 `type` is `tts_v3` or `chirpstack_v4`; ChirpStack profiles carry
 `application_id` (UUID), `device_ids` (EUIs) and optional `username`.
 
-**Provisioning file** (kiosk, `/etc/thingsmapper/config.toml` or
-`~/.config/thingsmapper/config.toml`):
+**Provisioning file** (kiosk and desktop). Exactly one file is read: the
+first that exists of
+
+1. the path given with `--config` (if that path does not exist, the start
+   screen reports it — the search does not fall through to 2 and 3);
+2. `$XDG_CONFIG_HOME/thingsmapper/config.toml` (default
+   `~/.config/thingsmapper/config.toml`) — the user file;
+3. `/etc/thingsmapper/config.toml` — the system file.
+
+Files are never merged: a user file replaces the system file as a whole, so
+the complete provisioning of a device is always visible in one file.
+Command-line options (e.g. `--kiosk`) override the values of the file. A
+missing file is not an error; the application then runs on its stored
+settings alone.
 
 ```toml
 [app]
@@ -400,12 +413,20 @@ tls = true
 application_id = "my-app"
 tenant_id = "ttn"
 device_ids = ["mapper-01"]
-api_key_file = "/etc/thingsmapper/secrets/ttn-eu1.key"   # or api_key_env = "THINGSMAPPER_TTN_KEY"
+api_key_file = "secrets/ttn-eu1.key"   # relative to this file; or api_key_env = "THINGSMAPPER_TTN_KEY"
 active = true
 ```
 
-Secrets are read from `*_file` (mode 0600 required, otherwise refused with a
-diagnostic) or `*_env`; they are never written back.
+Secrets are read from `*_file` or `*_env`; they are never written back. A
+relative `*_file` path is resolved against the directory of the
+provisioning file. A secret file is accepted only when it is a regular file
+**owned by the user the application runs as** and grants **no permission
+to group or others** (mode `0600` or `0400`); any other file is refused
+with a diagnostic naming the path, its owner and mode, and the expected
+owner and mode. The application never runs as root — the kiosk runs as its
+autologin user — so a secret under `/etc/thingsmapper/` must be owned by
+that user (`chown <kiosk-user>: …; chmod 0600 …`); a root-owned `0600` file
+would be unreadable.
 
 ## 4. Functions
 
@@ -841,14 +862,19 @@ profile editor and settings, long-press (3 s) on the app title for the
 *exit/shut down* dialog. *Realises* REQ-F-130, REQ-F-134.
 
 #### FDS-15.2 Configuration file
-§3.7 read at start; the UI shows file-provided values as read-only with the
-file path; secrets from `*_file`/`*_env`. Errors in the file are shown on a
+The provisioning file of §3.7 is read at start (one file, chosen by the
+precedence in §3.7); the UI shows file-provided values as read-only with
+the file path, and diagnostics lists the candidate paths and which one was
+used; secrets from `*_file`/`*_env` with the ownership and mode check of
+§3.7. Errors in the file — including a refused secret file — are shown on a
 start screen with the line number; the app still starts without the faulty
 profile. *Realises* REQ-F-131.
 
 #### FDS-15.3 Supervision and resilience
-Packaged with a systemd user unit (`Restart=on-failure`, `RestartSec=5`);
-the app writes a heartbeat; session resume per FDS-2.4; connectivity loss is
+Packaged with a systemd user unit (`Restart=on-failure`, `RestartSec=5`)
+that is started by the kiosk user's graphical session after autologin —
+not at login of the user manager — because the application needs that
+session's display; it stops with the session. The app writes a heartbeat; session resume per FDS-2.4; connectivity loss is
 handled by FDS-3.1 and FDS-10.2; tiles come from the cache. Optional status
 page (`http://localhost:8787/status`, read-only JSON and HTML) when enabled.
 *Realises* REQ-F-133, REQ-F-135, REQ-NF-012.
