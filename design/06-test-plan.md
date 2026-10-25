@@ -8,6 +8,7 @@ Status: **Draft**
 | 0.2 | 2026-10-24 | R. Welling (with Claude) | Project renamed to Things Mapper; editions (ADR-0007): TC-ED-01…14, both editions in CI, car tests on the Paid edition |
 | 0.3 | 2026-10-24 | R. Welling (with Claude) | Sponsor catalogue is the only ad source (OP-7); licence route L-A (OP-8); no ad consent |
 | 0.4 | 2026-10-24 | R. Welling (with Claude) | Free start screen; cost awareness and voluntary support (ADR-0008); budget per milestone |
+| 0.5 | 2026-10-25 | R. Welling (with Claude) | Linux fixes: §6.22 packaging install tests TC-PK-01/02; TC-KI-08 boot to kiosk, TC-KI-09 provisioning-file precedence, TC-KI-03 owner/mode cases; TC-SO-06 desktop settings survive a power cut; CI-Desktop builds in `debian:12` |
 
 Related: [02 Requirements](02-requirements.md) (acceptance basis),
 [03 FDS](03-fds.md) (expected behaviour), [05 TDS](05-tds.md) (test hooks,
@@ -87,7 +88,7 @@ contract behaviour.
 |---|---|---|
 | CI-JVM | GitHub-hosted Ubuntu, JDK 21, Testcontainers (Mosquitto 2.x, stub ingress) | U, I |
 | CI-Android | Emulators API 30, 34, 36 (x86_64), `freeFoss` and `paidFoss` variants | I (service, secret store), S (UI tests) |
-| CI-Desktop | Compose UI tests headless (x86_64), `packageDeb` on x86_64 and arm64 runners | S |
+| CI-Desktop | Compose UI tests headless (x86_64), `packageDeb` in a `debian:12` container on x86_64 and arm64 runners, install tests in clean distribution containers (TC-PK) | S |
 | LAB-Phone-A | Current mid-range phone, Android 15/16, `freePlay`, `paidPlay` and `freeFoss` variants | S, F |
 | LAB-Phone-B | Older phone, Android 8.1 or 10 (minSdk coverage) | S |
 | LAB-Tablet | 10" tablet (expanded layout) | S |
@@ -267,6 +268,7 @@ Columns: id, title, type, requirements, procedure (summary), expected result.
 | TC-SO-03 | Localisation nl | S | REQ-F-102 | device locale nl | translated; layouts intact at +30 % |
 | TC-SO-04 | No hard-coded strings | U (lint) | REQ-F-102 | Android Lint `HardcodedText` | zero |
 | TC-SO-05 | Theme auto/dark/light | S | REQ-NF-031 | switch | tokens applied; level colours unchanged |
+| TC-SO-06 | Desktop settings survive a power cut | I | REQ-F-101, F-013 | JVM: a child process changes settings in a loop and is killed with `SIGKILL` at random moments (100 runs); load the settings after each kill | file always parses and holds either the previous or the new value; stored in `$XDG_CONFIG_HOME/thingsmapper/settings.properties`; nothing under `~/.java` |
 
 ### 6.12 Diagnostics and security (TC-DS)
 
@@ -300,11 +302,13 @@ verifies that the Free edition has no car service.
 |---|---|---|---|---|---|
 | TC-KI-01 | Full-screen kiosk on 800×480 and 720×1280 | S (Pi) | REQ-F-130, P-004 | start with `kiosk=true` on LAB-Pi4/Pi5 | layouts SCR-30/31; targets ≥ 64 px |
 | TC-KI-02 | On-screen keyboard | S (Pi) | REQ-F-130 | edit profile | keyboard appears, input works |
-| TC-KI-03 | Provisioning file | S | REQ-F-131 | valid file; file with error; secret file 0644 | applied; error screen with line; refused with diagnostic |
+| TC-KI-03 | Provisioning file | S | REQ-F-131 | valid file; file with error; secret file 0644; secret file 0600 owned by another user (e.g. root); secret file 0400 owned by the kiosk user; relative `api_key_file` | applied; error screen with line; refused with diagnostic naming path, owner, mode and the expected ones (both cases); accepted; resolved against the provisioning file's directory |
 | TC-KI-04 | systemd restart | S (Pi) | REQ-NF-012 | kill process | restarted in ≤ 10 s; session resumes |
 | TC-KI-05 | Intermittent connectivity | S (Pi) | REQ-F-133 | toggle hotspot during replay | session continues; queue drains; cached tiles shown |
 | TC-KI-06 | Unsynced clock flag | I | REQ-F-132 | offset system clock 1 h vs GNSS | `TIME_UNSYNCED` flag |
 | TC-KI-07 | Status page | S | REQ-F-135 | enable; curl | JSON with state; read-only |
+| TC-KI-08 | Boot to kiosk | S (Pi) | REQ-F-130, P-004, NF-012 | fresh Raspberry Pi OS (labwc), autologin, package installed, autostart lines of the Pi guide added; power on; then log out of the session | app full screen without any input; `systemctl --user show thingsmapper-kiosk` lists `WAYLAND_DISPLAY`/`DISPLAY`; unit not started before the session; unit inactive after logout, no restart loop |
+| TC-KI-09 | Provisioning-file precedence | U | REQ-F-131 | combinations of `--config` (existing / missing), user file and system file | exactly one file read: `--config`, else user, else system; missing `--config` path → start-screen error without fall-through; values never merged; diagnostics names the file used |
 
 ### 6.15 Replay tool (TC-RT)
 
@@ -388,6 +392,13 @@ verifies that the Free edition has no car service.
 | TC-SU-09 | Data Safety purchase history | X | REQ-NF-060 | compare the Play declarations with the billing use | purchase history declared for the `play` variants |
 | TC-SU-10 | Prices shown | X | REQ-F-162, REQ-C-010 | start screen in EUR and non-EUR locales; compare with the store listings | €6 in EUR locales, generic text elsewhere; consistent with the store price |
 
+### 6.22 Packaging (TC-PK)
+
+| ID | Title | Type | Req | Procedure | Expected |
+|---|---|---|---|---|---|
+| TC-PK-01 | x86_64 `.deb` installs on every supported release | S (CI) | REQ-P-003, C-008 | in clean `debian:12`, `debian:13`, `ubuntu:22.04` and newest-Ubuntu-LTS containers: `apt-get update && apt-get install -y ./thingsmapper_*_amd64.deb`, then `thingsmapper --version` | installs without unmet dependencies on every release; prints the version and git SHA; exit code 0 |
+| TC-PK-02 | arm64 `.deb` installs on Raspberry Pi OS bases | S (CI) | REQ-P-004, C-008 | as TC-PK-01 in clean arm64 `debian:12` and `debian:13` containers (bases of Raspberry Pi OS Bookworm and Trixie); once per milestone also on LAB-Pi4 with Raspberry Pi OS Bookworm | as TC-PK-01; the kiosk unit and `/usr/share/thingsmapper/kiosk/autostart` are installed, the unit is not enabled |
+
 ## 7. Field test protocol
 
 **Preparation.** Charge devices to 100 %; node transmitting every 10 s at
@@ -425,7 +436,7 @@ diagnostics bundle from Things Mapper; read `batterystats` for phone A.
 
 | Requirement | Test cases |
 |---|---|
-| REQ-P-001…009 | TC-SE-03, TC-CA-*, TC-KI-01, TC-CX-05, CI matrix (TDS-11), TC-DS-05, TC-ED-01 |
+| REQ-P-001…009 | TC-SE-03, TC-CA-*, TC-KI-01, TC-KI-08, TC-PK-01, 02, TC-CX-05, CI matrix (TDS-11), TC-DS-05, TC-ED-01 |
 | REQ-F-001…009 | TC-PR-01…10 |
 | REQ-F-010…015 | TC-SE-01…07 |
 | REQ-F-020…028 | TC-IN-01…16 |
@@ -436,21 +447,21 @@ diagnostics bundle from Things Mapper; read `batterystats` for phone A.
 | REQ-F-070…073 | TC-IS-01…05, TC-MA-08 |
 | REQ-F-080…088 | TC-UP-01…11 |
 | REQ-F-090…092 | TC-AL-01, 02, TC-SE-03 |
-| REQ-F-100…103 | TC-SO-01…05 |
+| REQ-F-100…103 | TC-SO-01…06 |
 | REQ-F-110…112 | TC-DS-01…03, TC-IN-06 |
 | REQ-F-120…124 | TC-CA-01…06, TC-F-04 (Paid edition) |
-| REQ-F-130…135 | TC-KI-01…07, TC-F-03 |
+| REQ-F-130…135 | TC-KI-01…09, TC-F-03 |
 | REQ-F-140, 141 | TC-RT-01…03 |
 | REQ-F-150…162 | TC-ED-01…15 |
 | REQ-F-163…167 | TC-SU-01…10 |
 | REQ-NF-001…006 | TC-P-01…05, TC-N-06, TC-F-05 |
-| REQ-NF-010…013 | TC-ST-01, 02, TC-UP-04, TC-IN-10, TC-KI-04 |
+| REQ-NF-010…013 | TC-ST-01, 02, TC-UP-04, TC-IN-10, TC-KI-04, TC-KI-08 |
 | REQ-NF-020…024 | TC-IN-09, 12, 13, TC-PR-10, TC-DS-01, 02, 04, 06 |
 | REQ-NF-030…034 | TC-IS-05, TC-CX-01, 02, 05, TC-SO-03, TC-CA-05 |
 | REQ-NF-040…044 | CI gates (coverage, lint), review checklist §9 |
 | REQ-NF-050 | TC-DS-03 |
 | REQ-NF-060…064 | TC-DS-05, TC-CX-03, 04, TC-SO-01, TC-ED-02, TC-ED-12 |
-| REQ-C-001…011 | TC-SU-07, TC-SU-10, TC-DS-06, TC-UP-02, TC-DS-05, TC-CX-04, CI arm64 job, TC-ED-12, review of `app/` for upstream code (REQ-C-009) |
+| REQ-C-001…011 | TC-SU-07, TC-SU-10, TC-DS-06, TC-UP-02, TC-DS-05, TC-CX-04, CI arm64 job, TC-PK-01, 02 (REQ-C-008), TC-ED-12, review of `app/` for upstream code (REQ-C-009) |
 | TGT-01…09 | parity checklist (M2.4 review), TC-F-01…05, TC-P-*, CI gates, adapter-guide review, store revenue reports (TGT-09) |
 
 ## 9. Review checklists (design and code)
@@ -478,10 +489,10 @@ and coverage.
 | Milestone | Must pass |
 |---|---|
 | M2.1 Foundation | all U/I tests of TC-IN, TC-RU, TC-PO (non-hardware), TC-ST-01/02/04/06, TC-UP-01…07, TC-RT-01/02; coverage gate |
-| M2.2 Desktop MVP | TC-MA-*, TC-P-02/03 on desktop, TC-SE-01, TC-IS-*, TC-PO-05/06 |
+| M2.2 Desktop MVP | TC-MA-*, TC-P-02/03 on desktop, TC-SE-01, TC-IS-*, TC-PO-05/06, TC-SO-06, TC-KI-09, TC-PK-01 |
 | M2.3 Android MVP | TC-SE-02…05, TC-PR-*, TC-SO-01/02, TC-ST-07, TC-DS-01…05, TC-P-01/03 on phone, TC-ED-01/02/13 |
 | M2.4 Parity | TC-F-01, TC-F-02, TC-F-05, TC-ST-09, TC-SO-03, TC-ED-15, TC-SU-01…04, 06…08, TGT-01/03 review |
-| M3.1 Kiosk | TC-KI-*, TC-F-03, TC-P-01/03 on Pi |
+| M3.1 Kiosk | TC-KI-*, TC-PK-02, TC-F-03, TC-P-01/03 on Pi |
 | M3.2 Android Auto (Paid) | TC-CA-*, TC-F-04, TC-ED-13 |
 | M3.3 Release 1.0 | TC-CX-*, TC-F-06, TC-ED-*, TC-SU-*, full regression on both editions, TGT-06 |
 

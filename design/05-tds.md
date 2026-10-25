@@ -9,6 +9,7 @@ Status: **Draft**
 | 0.3 | 2026-10-24 | R. Welling (with Claude) | Sponsor catalogue is the only ad source (OP-7); licence route L-A (OP-8); no ad consent |
 | 0.4 | 2026-10-24 | R. Welling (with Claude) | Free start screen; cost awareness and voluntary support (ADR-0008); budget per milestone |
 | 0.5 | 2026-10-24 | R. Welling (with Claude) | Package root `nl.pe1mew.thingsmapper` confirmed (TDS-OP-1 closed) |
+| 0.6 | 2026-10-25 | R. Welling (with Claude) | Linux fixes: `.deb` built in a `debian:12` container with install tests (TDS-9.3, TDS-11, TDS-R-10); kiosk unit started by the graphical session (TDS-9.3, TDS-R-11); JVM settings in `settings.properties` with atomic writes instead of `Preferences` (TDS-5.3); secret-file owner/mode check (TDS-5.4); provisioning-file precedence and `--version` (TDS-9.3) |
 
 Related: [02 Requirements](02-requirements.md), [03 FDS](03-fds.md),
 [04 GUI design](04-gui-design.md), [06 Test plan](06-test-plan.md),
@@ -110,8 +111,9 @@ while a session runs; the UI observes the same singleton state through the
 DI graph, so the activity can be destroyed and recreated freely. The Car App
 `Session`/`Screen`s run in the same process and observe the same state.
 
-**Linux desktop / Raspberry Pi.** One JVM process started by the user or by
-a systemd user unit; the Compose window is the only UI; the session lives as
+**Linux desktop / Raspberry Pi.** One JVM process started by the user or —
+on the kiosk — by a systemd user unit that the graphical session starts
+(TDS-9.3); the Compose window is the only UI; the session lives as
 long as the process. Optional embedded status HTTP server.
 
 **Replay tool.** Separate JVM CLI process that uses `core` and `net` without
@@ -342,10 +344,22 @@ REQ-NF-010). See [ADR-0005](adr/ADR-0005-storage-and-outbox.md).
 
 ### 5.3 Settings (TDS-5.3)
 
-`multiplatform-settings` (Android `SharedPreferences`, JVM `Preferences`
-backed by a file under `$XDG_CONFIG_HOME/thingsmapper/`), wrapped by a typed
-`SettingKey<T>` registry with defaults and migration of keys. The kiosk
-config file (TOML via `tomlkt`) overlays settings as read-only values.
+`multiplatform-settings`, wrapped by a typed `SettingKey<T>` registry with
+defaults and migration of keys:
+
+- **Android:** `SharedPreferences`.
+- **JVM (Linux):** `PropertiesSettings` over `java.util.Properties`,
+  persisted on every change to
+  `$XDG_CONFIG_HOME/thingsmapper/settings.properties` by writing a temporary
+  file in the same directory, `fsync`, and `Files.move(…, ATOMIC_MOVE)`, so
+  a power cut on a Pi leaves either the old or the new file, never a
+  truncated one. `java.util.prefs.Preferences` is not used: its Linux store
+  is `~/.java/.userPrefs` and cannot follow the XDG paths without a custom
+  `PreferencesFactory`.
+
+The provisioning file (FDS §3.7, TOML via `tomlkt`) overlays settings as
+read-only values; it is a separate, human-written file that the application
+never writes.
 
 ### 5.4 Secret store (TDS-5.4)
 
@@ -360,7 +374,10 @@ config file (TOML via `tomlkt`) overlays settings as read-only values.
   file `secrets.json` under the config directory with mode `0600`
   (`PosixFilePermissions`) and a one-time warning in the UI; kiosk
   provisioning secrets are read from `*_file`/`*_env` and cached in memory
-  only.
+  only. Before a `*_file` is read, `Files.getOwner` must equal the process
+  user and `Files.getPosixFilePermissions` must contain no `GROUP_*` or
+  `OTHERS_*` bit (FDS §3.7); otherwise the profile is refused with a
+  diagnostic and the secret is not read.
 - The `Secret` type never implements `toString()` with its content; logging
   a `Secret` prints `«secret»`.
 
@@ -515,13 +532,13 @@ rendering for the Compose shells while the car keeps the own renderer
 
 | Element | Design |
 |---|---|
-| Entry | `main()` parses `--config`, `--kiosk`, `--replay`, `--headless-status`; loads TOML config (`tomlkt`); starts Koin; `application { Window(...) }` with `undecorated`/`fullscreen` in kiosk mode |
+| Entry | `main()` parses `--config`, `--kiosk`, `--replay`, `--headless-status`, `--version` (prints the version and git SHA and exits without opening a window — used by the package install test); loads the provisioning file (`tomlkt`, precedence of FDS §3.7); starts Koin; `application { Window(...) }` with `undecorated`/`fullscreen` in kiosk mode |
 | Rendering | Skiko default (OpenGL) with automatic fallback to software (`skiko.renderApi=SOFTWARE`) when GL is unavailable; on the Pi the systemd unit sets `SKIKO_RENDER_API=SOFTWARE` by default (Pi 4's VideoCore VI GL works with the KMS driver but software rendering is the predictable baseline; the spike WP-2.4 decides the default) |
 | Position sources | `GpsdSource` (TCP `?WATCH={"enable":true,"json":true}`, TPV/SKY parsing, reconnect), `NmeaSerialSource` (jSerialComm; GGA/RMC/GSA parsing shared with gpsd's NMEA fallback), `ManualSource`, `ReplaySource` |
-| Files | Config `$XDG_CONFIG_HOME/thingsmapper/config.toml`, data `$XDG_DATA_HOME/thingsmapper/thingsmapper.db`, cache `$XDG_CACHE_HOME/thingsmapper/tiles/`, logs `$XDG_STATE_HOME/thingsmapper/log/` (rotating 10 MB × 5) |
-| Kiosk | `thingsmapper-kiosk.service` (systemd user unit: `Restart=on-failure`, `RestartSec=5`, `Environment=SKIKO_RENDER_API=SOFTWARE`), autologin + Xorg/`labwc` session documented in `documentation/raspberry-pi-kiosk.md`; touch works through the toolkit's pointer events; screen rotation via the display stack, not the app |
+| Files | Provisioning: the first existing of `--config`, `$XDG_CONFIG_HOME/thingsmapper/config.toml`, `/etc/thingsmapper/config.toml` (one file, never merged, FDS §3.7); settings `$XDG_CONFIG_HOME/thingsmapper/settings.properties` (TDS-5.3); secret fallback `$XDG_CONFIG_HOME/thingsmapper/secrets.json` (TDS-5.4); data `$XDG_DATA_HOME/thingsmapper/thingsmapper.db`, cache `$XDG_CACHE_HOME/thingsmapper/tiles/`, logs `$XDG_STATE_HOME/thingsmapper/log/` (rotating 10 MB × 5) |
+| Kiosk | `thingsmapper-kiosk.service`, a systemd user unit installed to `/usr/lib/systemd/user/` and **not enabled** by the package (no `[Install]` section): `PartOf=graphical-session.target`, `After=graphical-session.target`, `ExecStart=… --kiosk`, `Restart=on-failure`, `RestartSec=5`, `StartLimitIntervalSec=120`, `StartLimitBurst=10`, `Environment=SKIKO_RENDER_API=SOFTWARE`. A user manager started at login has no `WAYLAND_DISPLAY`/`DISPLAY`, so the unit is started **by the graphical session**, not by `default.target`: the kiosk user's compositor autostart (labwc: `~/.config/labwc/autostart`) runs `systemctl --user import-environment WAYLAND_DISPLAY DISPLAY XAUTHORITY` and then `systemctl --user start thingsmapper-kiosk.service`; the package ships these two lines as `/usr/share/thingsmapper/kiosk/autostart`. systemd supervises restarts inside the session; `PartOf` stops the unit with sessions that run `graphical-session.target`, and the start limit ends a restart loop after the display is gone in sessions that do not. Autologin, the labwc session and the X11 equivalent are documented in `documentation/raspberry-pi-kiosk.md`; touch works through the toolkit's pointer events; screen rotation via the display stack, not the app |
 | Status server | Optional Ktor CIO server on `127.0.0.1:8787` serving `/status` (JSON, HTML) read-only |
-| Packaging | `compose.desktop { nativeDistributions { targetFormats(Deb) } }` with a bundled JRE (jlink); built natively per architecture (x86_64 on `ubuntu-22.04`, aarch64 on `ubuntu-24.04-arm` runners); AppImage may follow |
+| Packaging | `compose.desktop { nativeDistributions { targetFormats(Deb) } }` with a bundled JRE (jlink). jpackage derives the package's `Depends:` from the packages of the build host that own the libraries the bundled runtime links against, so a package only installs on releases that use the same package names. Ubuntu 24.04 and Debian 13 renamed several libraries in the 64-bit `time_t` transition (`libasound2` → `libasound2t64`); the new packages declare `Provides:` for the old names but not the other way round. Rule: **build on the oldest supported release** — in a `debian:12` container (the base of Raspberry Pi OS Bookworm, with names that also exist on Ubuntu 22.04), natively per architecture: x86_64 on `ubuntu-24.04` runners, aarch64 on `ubuntu-24.04-arm` runners (jpackage cannot cross-build). The container also decouples the build from GitHub's runner-image retirements; when the oldest supported release changes, the container image changes with it. Every package passes the install test TC-PK-01/02. AppImage may follow |
 | Shutdown | Long-press dialog offers *Exit* and, when permitted by polkit, *Power off* |
 
 ### 9.4 Replay tool (TDS-9.4)
@@ -740,7 +757,7 @@ SemVer for the software (`MAJOR.MINOR.PATCH`), Android `versionCode` =
 | Toolchain | JDK 21 (Temurin), Kotlin and Compose Multiplatform latest stable at WP-2.1, AGP matching; Gradle wrapper with configuration cache |
 | Static analysis | `ktlint` (Gradle plugin), `detekt` with the project rule set, Android Lint (`warningsAsErrors` for `HardcodedText`, `MissingPermission`, `UnusedResources`), a custom detekt rule forbidding `println`/`Log` outside the logging sink |
 | Tests | `core`/`map`/`data` unit tests on JVM (`kotlin.test`, Turbine for flows, `kotest-assertions`), SQLDelight verification, Android instrumentation for the service and secret store, Compose UI tests (desktop runner), integration tests with a Mosquitto container (Testcontainers) driven by the replay tool, screenshot tests for the wireframe screens |
-| CI (GitHub Actions) | `pr.yml`: lint + tests on `ubuntu-latest`; `android.yml`: assemble the `freeFoss` and `paidFoss` debug APKs, run instrumentation for both editions on an emulator (API 30, 34), check merged manifests (no `AD_ID` and no ad classes in `paid*`, no `CarAppService` in `free*`); `desktop.yml`: `packageDeb` on `ubuntu-22.04` (x86_64) and `ubuntu-24.04-arm` (aarch64); `ios-compile.yml` (optional macOS job): `compileKotlinIosArm64` for `core`, `data`, `net`, `map` |
+| CI (GitHub Actions) | `pr.yml`: lint + tests on `ubuntu-latest`; `android.yml`: assemble the `freeFoss` and `paidFoss` debug APKs, run instrumentation for both editions on an emulator (API 30, 34), check merged manifests (no `AD_ID` and no ad classes in `paid*`, no `CarAppService` in `free*`); `desktop.yml`: `packageDeb` in a `debian:12` container on `ubuntu-24.04` (x86_64) and `ubuntu-24.04-arm` (aarch64) runners (TDS-9.3), then the install test in clean containers — x86_64: `debian:12`, `debian:13`, `ubuntu:22.04` and the newest Ubuntu LTS (TC-PK-01); arm64: `debian:12` and `debian:13`, the bases of Raspberry Pi OS Bookworm and Trixie (TC-PK-02); `ios-compile.yml` (optional macOS job): `compileKotlinIosArm64` for `core`, `data`, `net`, `map` |
 | Release | Tag → `release.yml` builds signed APK/AAB (`freePlay` and `paidPlay` AABs for the two Play listings, `freeFoss` APK for GitHub/F-Droid per OP-9) with signing material from repository secrets, `.deb` x86_64 and arm64, `SHA256SUMS`, licence report (`licensee`), CycloneDX SBOM; changelog section becomes the release notes, which must contain a *Why this update* line (store changelog files in fastlane format per `versionCode`, also read by F-Droid; CI fails without it) |
 | Distribution | GitHub Releases (desktop/Pi `.deb`; Android `freeFoss` per OP-9), Google Play Free and Paid listings (internal → closed → production tracks), F-Droid (reproducible `freeFoss` build, later, OP-9), App Store Free and Paid (phase 4), `.deb` repository (later) |
 
@@ -802,6 +819,8 @@ exact versions.
 | TDS-R-8 | Two near-identical apps drift apart | One code base, edition only as build constant, CI builds and tests both editions on every PR (TC-ED-01) |
 | TDS-R-9 | Funding data goes stale or wrong | `updated` date shown, outdated note after 120 days, ledger script with checks, refresh at every release and at least quarterly |
 | TDS-OP-4 | Confirm Paid application id suffix `.paid` and edition names (OP-10) | Maintainer, WP-2.16 |
+| TDS-R-10 | Package dependency names differ between distribution releases (64-bit `time_t` renames such as `libasound2t64`): a `.deb` built on a newer release does not install on an older one | Build in a container of the oldest supported release (TDS-9.3); install test on every supported release (TC-PK-01/02) |
+| TDS-R-11 | The kiosk unit starts without the display environment (started at login instead of by the session) and fails or loops | Unit not enabled for `default.target`; started from the compositor autostart after `import-environment`; start limit; boot test TC-KI-08 |
 
 ## 15. Traceability (requirements → design)
 

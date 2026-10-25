@@ -53,6 +53,21 @@ software. Design documents carry their own revision table in their header.
   TC-ED-15 and TC-SU-01…10, WP-2.17, budget per milestone.
 
 **Changed**
+- Linux design fixes (2026-10-25):
+  - Desktop and Raspberry Pi `.deb` packages are built in a `debian:12`
+    container, so their dependency names also resolve on Raspberry Pi OS
+    Bookworm. Before, the arm64 package was built on Ubuntu 24.04 and would
+    have required `libasound2t64`. Install tests TC-PK-01/02 run on every
+    supported release (REQ-C-008, TDS-9.3, TDS-11).
+  - The kiosk's systemd user unit is started by the graphical session, so
+    it has the display environment (FDS-15.3, TDS-9.3, TC-KI-08).
+  - Secret files must be owned by the user the application runs as and
+    must not be accessible to group or others; relative paths resolve
+    against the provisioning file (FDS §3.7, TDS-5.4).
+  - Exactly one provisioning file is read, chosen in this order:
+    `--config`, then the user file, then `/etc` (FDS §3.7, TC-KI-09).
+  - JVM settings are stored in `settings.properties` with atomic writes
+    instead of `java.util.prefs` (TDS-5.3, TC-SO-06).
 - Package root `nl.pe1mew.thingsmapper` confirmed (TDS-OP-1 closed); the
   Paid edition's `.paid` suffix remains open (TDS-OP-4).
 - Prices: Paid edition €6 once, yearly supporter €5, tips €2 / €5 / €10; the Free edition starts with a start
