@@ -9,6 +9,7 @@ Status: **Draft**
 | 0.3 | 2026-10-24 | R. Welling (with Claude) | Sponsor catalogue is the only ad source (OP-7); licence route L-A (OP-8); no ad consent |
 | 0.4 | 2026-10-24 | R. Welling (with Claude) | Free start screen; cost awareness and voluntary support (ADR-0008); budget per milestone |
 | 0.5 | 2026-10-25 | R. Welling (with Claude) | Linux fixes in WP-2.11 and WP-3.1: `.deb` built in `debian:12` with install tests, kiosk unit started by the session, settings with atomic writes, provisioning-file precedence, secret-file owner/mode check |
+| 0.6 | 2026-10-25 | R. Welling (with Claude) | ADR-0009: WP-2.1 sets up the library build `lib/` and the shell build `app/`, `lib.yml` with an iOS simulator job, `app.yml`; M2.1 exit adds TC-LB; WP-4.1 consumes the libraries through `ios-umbrella` |
 
 Related: [02 Requirements](02-requirements.md), [05 TDS](05-tds.md)
 (what is built), [06 Test plan](06-test-plan.md) (exit criteria per
@@ -46,7 +47,7 @@ no new High defects.
 | Milestone | Content | Exit (test plan §11) | Artefacts |
 |---|---|---|---|
 | **Phase 1 — Design** (done with this repository state) | Evaluation, requirements, FDS, GUI, TDS, test plan, this plan, ADRs | design review checklist | `design/` |
-| **M2.1 Foundation** | Repository/build/CI, core domain and ports, adapters with fixtures, pipeline, SQLDelight store and outbox, upload worker against stub, replay tool | U/I suites, coverage gate | `core`, `data`, `net` libraries; `thingsmapper-replay` |
+| **M2.1 Foundation** | Repository/build/CI, core domain and ports, adapters with fixtures, pipeline, SQLDelight store and outbox, upload worker against stub, replay tool | U/I suites, TC-LB, coverage gate | `core`, `data`, `net` libraries (build `lib/`); `thingsmapper-replay` |
 | **M2.2 Desktop MVP** | Map renderer spike and go/no-go, desktop shell with map, indicators, session control, gpsd/NMEA/replay sources, profiles editor, TLS MQTT | TC-MA, TC-P-02/03 desktop, TC-PK-01 | `thingsmapper_0.1.0_amd64.deb` (pre-release) |
 | **M2.3 Android MVP** | Android shell: onboarding, profiles, foreground service, map, drive view, upload with consent, secure store, diagnostics | TC-SE, TC-PR, TC-SO, TC-DS | APKs 0.2.0 (`freeFoss`, `paidFoss`), Play internal track for both editions |
 | **M2.4 Parity release** | Sessions, exports (CSV/GeoJSON), statistics, alerts/sounds, legacy import, Dutch translation, editions and ad slot (WP-2.16), field tests, ingress coordination (OP-1) | TC-F-01/02/05, TC-ED, TGT-01/03 | 0.3.0 APK + deb; closed beta |
@@ -65,7 +66,7 @@ parties. Sizes: S ≈ 0.5–1 week, M ≈ 1–2, L ≈ 2–4.
 
 | WP | Title | Scope and deliverables | Depends on | Requirements | Size | Milestone |
 |---|---|---|---|---|---|---|
-| WP-2.1 | Repository and build | Gradle KTS multi-module skeleton (TDS §3), version catalogue, convention plugins, ktlint/detekt, GitHub Actions `pr.yml`, coverage gate, SPDX headers with the additional-permission line (license.md), PR checklist item "no upstream code copied", issue/PR templates, `CLAUDE.md` for the code base | — | REQ-NF-042, REQ-C-001 | M | M2.1 |
+| WP-2.1 | Repository and build | Two Gradle KTS builds per ADR-0009 — `lib/` with the library modules (targets `jvm`, `android` where an SDK is configured, `iosArm64`, `iosSimulatorArm64`) and `app/` with the shell modules, joined as a composite build (TDS §3); root wrapper, shared version catalogue and convention plugins, ktlint/detekt, ABI dumps, contract-suite scaffolding in `testing`, GitHub Actions `lib.yml` (Ubuntu and macOS iOS-simulator job) and `app.yml`, coverage gate, SPDX headers with the additional-permission line (license.md), PR checklist item "no upstream code copied", issue/PR templates, `lib/README.md` and `app/README.md`, `CLAUDE.md` for the code base; TC-LB-01, 02, 04 | — | REQ-NF-042, REQ-NF-045, REQ-C-001 | M | M2.1 |
 | WP-2.2 | Core domain, ports, rules | Domain model, value classes, ports, `Level`/`LevelClass`, gateway validation, normalisation, freshness, fix selection; unit tests TC-RU, TC-PO-01…03 | WP-2.1 | REQ-F-040…047, REQ-F-031…033 | M | M2.1 |
 | WP-2.3 | Protocol adapters and fixtures | `TtsV3Adapter`, `ChirpStackV4Adapter`, Packet Broker rules, adapter registry, `ProfileFieldSpec`; fixtures FIX-TTS/CS4/CS3/BAD recorded and anonymised; TC-IN-01…08 | WP-2.2, NS-TTS/NS-CS4 access | REQ-F-020…024, REQ-F-008 | L | M2.1 |
 | WP-2.4 | **Map renderer spike** | Projection, tile set, `DrawTarget`, tile cache, point/line/marker layers, Compose `MapView`; benchmark scene (20 k points/lines) on desktop and Pi 4; **go/no-go on ADR-0003** (fallback MapComposeMP) | WP-2.1 | REQ-F-060…064, REQ-NF-003 | L | M2.2 |
@@ -99,7 +100,7 @@ parties. Sizes: S ≈ 0.5–1 week, M ≈ 1–2, L ≈ 2–4.
 
 | WP | Title | Note |
 |---|---|---|
-| WP-4.1 | iOS shell | Core already compiles for `iosArm64` (CI job); needs Darwin HTTP engine, an MQTT implementation (CocoaMQTT via expect/actual or a pure-Kotlin client), Core Location source, `CoreGraphicsDrawTarget`; needs the Apple hardware of doc 08 (I-11…I-13) after the OP-11 decision; Free and Paid editions per REQ-P-009 (App Group import, sponsor ads from common code); App Store distribution of GPL software requires licence route OP-8 (ADR-0007 D5) |
+| WP-4.1 | iOS shell | The libraries already build and pass their tests on the iOS simulator in CI (ADR-0009); a SwiftUI shell consumes them through `lib/ios-umbrella` as one XCFramework via Swift Package Manager, a Compose shell links them directly; decide how flows and `suspend` functions reach Swift (wrappers or Kotlin Swift export); needs Darwin HTTP engine, an MQTT implementation (CocoaMQTT via expect/actual or a pure-Kotlin client), Core Location source, `CoreGraphicsDrawTarget`; needs the Apple hardware of doc 08 (I-11…I-13) after the OP-11 decision; Free and Paid editions per REQ-P-009 (App Group import, sponsor ads from common code); App Store distribution of GPL software requires licence route OP-8 (ADR-0007 D5) |
 | WP-4.2 | Generic MQTT/JSON adapter | Proves TGT-08 |
 | WP-4.3 | Multi-device sessions and device colouring | REQ-F-005 extension |
 | WP-4.4 | Android Automotive OS packaging | Same car module, AAOS target and Play AAOS review |
@@ -164,7 +165,7 @@ are ordered so that something usable exists from M2.2 onwards.
   design changes update the relevant document in the same PR; lasting
   decisions get an ADR.
 - **Documentation:** developer documentation lives with the code
-  (`app/README.md`, module READMEs, adapter guide); user documentation in
+  (`lib/README.md`, `app/README.md`, module READMEs, adapter guide); user documentation in
   `documentation/`; the changelog is updated per PR.
 - **Quality gates:** ktlint, detekt, Android Lint (hard-coded text as
   error), coverage ≥ 80 % for `core`, licence check, dependency updates via

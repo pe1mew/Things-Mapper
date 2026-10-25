@@ -9,6 +9,7 @@ Status: **Draft**
 | 0.3 | 2026-10-24 | R. Welling (with Claude) | OP-7 decided (sponsor catalogue only), OP-8 decided (route L-A, additional permission in license.md); REQ-F-155 withdrawn, REQ-F-159 changed |
 | 0.4 | 2026-10-24 | R. Welling (with Claude) | Free start screen (REQ-F-162); §6.17 cost awareness and voluntary support (REQ-F-163…167, ADR-0008); Paid price €6; REQ-C-011 payment rules; OP-11 Apple investment; hobby non-goal; doc 08 |
 | 0.5 | 2026-10-25 | R. Welling (with Claude) | REQ-C-008: packages must install on the oldest and newest supported release |
+| 0.6 | 2026-10-25 | R. Welling (with Claude) | REQ-NF-045: shared code as separately built and tested libraries (ADR-0009) |
 
 Related: [01 Evaluation](01-evaluation.md) (rationale `EVAL-nn`),
 [03 FDS](03-fds.md), [05 TDS](05-tds.md), [06 Test plan](06-test-plan.md),
@@ -396,6 +397,7 @@ Maintainer decisions of 2026-10-24, recorded in
 | REQ-NF-042 | Static analysis (ktlint, detekt) and all tests run in CI on every pull request; the default branch is always green. | M |
 | REQ-NF-043 | A new network-server adapter is added without modifying pipeline, storage, map or upload code (REQ-F-008); proven by the generic adapter (REQ-F-028) or a review checklist. | S |
 | REQ-NF-044 | Developer documentation (module overview, adapter guide, build and release) and user documentation per platform are maintained with the code. | M |
+| REQ-NF-045 | Code shared between the Linux, Android and iOS shells (core, data, network, map, UI, ads, support) shall be developed as libraries in a build of their own that depends on no application shell; each library shall be tested as a library on every target (JVM for Linux, Android, iOS on a macOS CI runner), and the shells shall reuse the libraries without modification ([ADR-0009](adr/ADR-0009-shared-libraries.md)). | M |
 
 ### 7.6 Observability
 

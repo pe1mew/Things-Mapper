@@ -9,6 +9,7 @@ Status: **Draft**
 | 0.3 | 2026-10-24 | R. Welling (with Claude) | Sponsor catalogue is the only ad source (OP-7); licence route L-A (OP-8); no ad consent |
 | 0.4 | 2026-10-24 | R. Welling (with Claude) | Free start screen; cost awareness and voluntary support (ADR-0008); budget per milestone |
 | 0.5 | 2026-10-25 | R. Welling (with Claude) | Linux fixes: §6.22 packaging install tests TC-PK-01/02; TC-KI-08 boot to kiosk, TC-KI-09 provisioning-file precedence, TC-KI-03 owner/mode cases; TC-SO-06 desktop settings survive a power cut; CI-Desktop builds in `debian:12` |
+| 0.6 | 2026-10-25 | R. Welling (with Claude) | Libraries tested as libraries (ADR-0009): principle, CI-iOS environment, §6.23 TC-LB-01…04, unit level on every target, PR checklist, traceability for REQ-NF-045 |
 
 Related: [02 Requirements](02-requirements.md) (acceptance basis),
 [03 FDS](03-fds.md) (expected behaviour), [05 TDS](05-tds.md) (test hooks,
@@ -46,6 +47,10 @@ are reviewed, not tested; review checklists are in §9.
   data path (TGT-02, TGT-03).
 - **Security is tested, not assumed.** Redaction, TLS enforcement and
   secret handling have their own automated tests.
+- **Libraries are tested as libraries.** The shared libraries in `lib/`
+  are built and tested without any shell; their common tests run on every
+  target (JVM, Android, iOS simulator), and every platform implementation
+  of a port runs the same contract suite (ADR-0009, REQ-NF-045).
 
 ## 2. Test strategy
 
@@ -53,7 +58,7 @@ are reviewed, not tested; review checklists are in §9.
 
 | Level | What | Where | Gate |
 |---|---|---|---|
-| Unit (U) | Rules, adapters, payload builder, exporters, state machines, renderer geometry, view-model reducers | JVM tests in CI on every PR | 100 % pass, coverage of `core` ≥ 80 % lines (REQ-NF-041) |
+| Unit (U) | Rules, adapters, payload builder, exporters, state machines, renderer geometry, view-model reducers | Library tests on JVM, Android host and iOS simulator in CI on every PR (shell code: JVM) | 100 % pass, coverage of `core` ≥ 80 % lines (REQ-NF-041) |
 | Integration (I) | Pipeline + SQLDelight + fake link + replay positions; MQTT link against a Mosquitto container; upload worker against a stub ingress server; migrations | CI on every PR (containers) | 100 % pass |
 | System (S) | Built apps on emulator/desktop: onboarding, profiles, session, map, export, diagnostics; Compose UI tests; screenshot tests | CI nightly + before each milestone | No open High defects |
 | Field (F) | Real node, real network server(s), real movement, side-by-side with TTN Mapper v3, Pi in a car, Android Auto head unit | Before beta and before 1.0 | Protocol §7 passed |
@@ -89,6 +94,7 @@ contract behaviour.
 | CI-JVM | GitHub-hosted Ubuntu, JDK 21, Testcontainers (Mosquitto 2.x, stub ingress) | U, I |
 | CI-Android | Emulators API 30, 34, 36 (x86_64), `freeFoss` and `paidFoss` variants | I (service, secret store), S (UI tests) |
 | CI-Desktop | Compose UI tests headless (x86_64), `packageDeb` in a `debian:12` container on x86_64 and arm64 runners, install tests in clean distribution containers (TC-PK) | S |
+| CI-iOS | GitHub-hosted macOS runner with Xcode and the iOS simulator (free for public repositories): `iosSimulatorArm64Test` of every library | U, I |
 | LAB-Phone-A | Current mid-range phone, Android 15/16, `freePlay`, `paidPlay` and `freeFoss` variants | S, F |
 | LAB-Phone-B | Older phone, Android 8.1 or 10 (minSdk coverage) | S |
 | LAB-Tablet | 10" tablet (expanded layout) | S |
@@ -399,6 +405,15 @@ verifies that the Free edition has no car service.
 | TC-PK-01 | x86_64 `.deb` installs on every supported release | S (CI) | REQ-P-003, C-008 | in clean `debian:12`, `debian:13`, `ubuntu:22.04` and newest-Ubuntu-LTS containers: `apt-get update && apt-get install -y ./thingsmapper_*_amd64.deb`, then `thingsmapper --version` | installs without unmet dependencies on every release; prints the version and git SHA; exit code 0 |
 | TC-PK-02 | arm64 `.deb` installs on Raspberry Pi OS bases | S (CI) | REQ-P-004, C-008 | as TC-PK-01 in clean arm64 `debian:12` and `debian:13` containers (bases of Raspberry Pi OS Bookworm and Trixie); once per milestone also on LAB-Pi4 with Raspberry Pi OS Bookworm | as TC-PK-01; the kiosk unit and `/usr/share/thingsmapper/kiosk/autostart` are installed, the unit is not enabled |
 
+### 6.23 Libraries (TC-LB)
+
+| ID | Title | Type | Req | Procedure | Expected |
+|---|---|---|---|---|---|
+| TC-LB-01 | Library build stands alone | U (CI) | REQ-NF-045 | clean checkout with `app/` deleted; build and `check` the `lib/` build | builds and all library tests pass; nothing in `lib/` refers to `app/` |
+| TC-LB-02 | Common tests pass on every target | U (CI) | REQ-NF-045, P-005 | run every library's `commonTest` as JVM test, Android host test and `iosSimulatorArm64Test` | same tests pass on all three; no target skipped in CI |
+| TC-LB-03 | Port contract suites | U/I (CI) | REQ-NF-045, NF-040 | run each contract suite of `testing` against every implementation of its port — e.g. `SecretStoreContract` against the in-memory fake, Secret Service, the `0600` file store, the Android Keystore store (instrumented, CI-Android) and later the iOS Keychain store | every implementation passes the same suite |
+| TC-LB-04 | Public API changes are explicit | U (CI) | REQ-NF-045 | change a public declaration of a library without updating its ABI dump | CI fails until the dump is updated in the same pull request |
+
 ## 7. Field test protocol
 
 **Preparation.** Charge devices to 100 %; node transmitting every 10 s at
@@ -436,7 +451,7 @@ diagnostics bundle from Things Mapper; read `batterystats` for phone A.
 
 | Requirement | Test cases |
 |---|---|
-| REQ-P-001…009 | TC-SE-03, TC-CA-*, TC-KI-01, TC-KI-08, TC-PK-01, 02, TC-CX-05, CI matrix (TDS-11), TC-DS-05, TC-ED-01 |
+| REQ-P-001…009 | TC-SE-03, TC-CA-*, TC-KI-01, TC-KI-08, TC-PK-01, 02, TC-CX-05, TC-LB-02, CI matrix (TDS-11), TC-DS-05, TC-ED-01 |
 | REQ-F-001…009 | TC-PR-01…10 |
 | REQ-F-010…015 | TC-SE-01…07 |
 | REQ-F-020…028 | TC-IN-01…16 |
@@ -458,7 +473,7 @@ diagnostics bundle from Things Mapper; read `batterystats` for phone A.
 | REQ-NF-010…013 | TC-ST-01, 02, TC-UP-04, TC-IN-10, TC-KI-04, TC-KI-08 |
 | REQ-NF-020…024 | TC-IN-09, 12, 13, TC-PR-10, TC-DS-01, 02, 04, 06 |
 | REQ-NF-030…034 | TC-IS-05, TC-CX-01, 02, 05, TC-SO-03, TC-CA-05 |
-| REQ-NF-040…044 | CI gates (coverage, lint), review checklist §9 |
+| REQ-NF-040…045 | CI gates (coverage, lint), review checklist §9, TC-LB-01…04 |
 | REQ-NF-050 | TC-DS-03 |
 | REQ-NF-060…064 | TC-DS-05, TC-CX-03, 04, TC-SO-01, TC-ED-02, TC-ED-12 |
 | REQ-C-001…011 | TC-SU-07, TC-SU-10, TC-DS-06, TC-UP-02, TC-DS-05, TC-CX-04, CI arm64 job, TC-PK-01, 02 (REQ-C-008), TC-ED-12, review of `app/` for upstream code (REQ-C-009) |
@@ -474,7 +489,8 @@ diagnostics bundle from Things Mapper; read `batterystats` for phone A.
   package and one registration line.
 - **Pull request checklist:** tests added/updated, traceability row updated,
   no new hard-coded strings, no secrets in code or fixtures, licence header
-  present, changelog entry.
+  present, changelog entry; every new implementation of a port runs its
+  contract suite (TC-LB-03).
 
 ## 10. Reporting and defect management
 
@@ -488,7 +504,7 @@ and coverage.
 
 | Milestone | Must pass |
 |---|---|
-| M2.1 Foundation | all U/I tests of TC-IN, TC-RU, TC-PO (non-hardware), TC-ST-01/02/04/06, TC-UP-01…07, TC-RT-01/02; coverage gate |
+| M2.1 Foundation | all U/I tests of TC-IN, TC-RU, TC-PO (non-hardware), TC-ST-01/02/04/06, TC-UP-01…07, TC-RT-01/02; TC-LB-01…04; coverage gate |
 | M2.2 Desktop MVP | TC-MA-*, TC-P-02/03 on desktop, TC-SE-01, TC-IS-*, TC-PO-05/06, TC-SO-06, TC-KI-09, TC-PK-01 |
 | M2.3 Android MVP | TC-SE-02…05, TC-PR-*, TC-SO-01/02, TC-ST-07, TC-DS-01…05, TC-P-01/03 on phone, TC-ED-01/02/13 |
 | M2.4 Parity | TC-F-01, TC-F-02, TC-F-05, TC-ST-09, TC-SO-03, TC-ED-15, TC-SU-01…04, 06…08, TGT-01/03 review |

@@ -51,6 +51,19 @@ software. Design documents carry their own revision table in their header.
   requirements §6.17 (REQ-F-163…167), REQ-C-011, OP-11, FDS-18, GUI §5b
   with wireframe `design/gui/support-and-costs.svg`, TDS-9.6, test cases
   TC-ED-15 and TC-SU-01…10, WP-2.17, budget per milestone.
+- ADR-0009 shared code as libraries (2026-10-25). The code shared between
+  the Linux, Android and iOS shells is developed as libraries in a Gradle
+  build of its own, `lib/`. The shells form the build `app/`, which
+  includes `lib/` as a composite build. The libraries are tested on every
+  target (JVM, Android, iOS simulator on a macOS CI runner), and every
+  platform implementation of a port runs the same contract suite. A
+  SwiftUI iOS shell gets the libraries as one XCFramework. Changes:
+  - new requirement REQ-NF-045;
+  - TDS §2.1, §3 (build column, `ios-umbrella`), §11 (`lib.yml`,
+    `app.yml`) and TDS-R-12;
+  - test environment CI-iOS and test cases TC-LB-01…04;
+  - WP-2.1 and WP-4.1;
+  - new `lib/README.md`, and `app/README.md` now covers the shells only.
 
 **Changed**
 - Linux design fixes (2026-10-25):

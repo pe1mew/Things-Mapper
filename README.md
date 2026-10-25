@@ -74,9 +74,9 @@ is changed and what is dropped.
 Design goals of the remake:
 
 - **One core, many shells.** All mapping logic (protocol adapters, positioning
-  rules, storage, upload queue, map model) lives in a platform-independent
-  Kotlin Multiplatform core; phone, car, desktop and Raspberry Pi are thin
-  shells on top of it.
+  rules, storage, upload queue, map model) lives in platform-independent
+  Kotlin Multiplatform libraries that are built and tested on their own;
+  phone, car, desktop and Raspberry Pi are thin shells on top of them.
 - **Current network servers.** The Things Stack v3 and ChirpStack v4 out of
   the box, TLS by default, extension point for others.
 - **Nothing lost.** Every received packet is stored locally first; uploads are
@@ -93,7 +93,8 @@ Design goals of the remake:
 |---|---|
 | `design/` | All design documents of phase 1 (evaluation, requirements, FDS, GUI design, TDS, test plan, implementation plan, ADRs) |
 | `design/gui/` | Wireframes (SVG) referenced by the GUI design |
-| `app/` | Application source — lands in phase 2 (see the implementation plan) |
+| `lib/` | Shared Kotlin Multiplatform libraries (core, data, net, map, ui, ads, support, testing) — a Gradle build of their own, tested on every target and reused by all shells ([ADR-0009](design/adr/ADR-0009-shared-libraries.md)); lands in phase 2 |
+| `app/` | Application shells (Android, Linux desktop / Raspberry Pi, replay tool) built on `lib/` — lands in phase 2 (see the implementation plan) |
 | `documentation/` | End-user documentation — written alongside the implementation |
 | `ttnmapper-android-v3/` | Git submodule: the original TTN Mapper Android app, the study reference and the origin of the GPL-3.0 licence of this repository |
 

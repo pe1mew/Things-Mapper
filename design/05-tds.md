@@ -10,6 +10,7 @@ Status: **Draft**
 | 0.4 | 2026-10-24 | R. Welling (with Claude) | Free start screen; cost awareness and voluntary support (ADR-0008); budget per milestone |
 | 0.5 | 2026-10-24 | R. Welling (with Claude) | Package root `nl.pe1mew.thingsmapper` confirmed (TDS-OP-1 closed) |
 | 0.6 | 2026-10-25 | R. Welling (with Claude) | Linux fixes: `.deb` built in a `debian:12` container with install tests (TDS-9.3, TDS-11, TDS-R-10); kiosk unit started by the graphical session (TDS-9.3, TDS-R-11); JVM settings in `settings.properties` with atomic writes instead of `Preferences` (TDS-5.3); secret-file owner/mode check (TDS-5.4); provisioning-file precedence and `--version` (TDS-9.3) |
+| 0.7 | 2026-10-25 | R. Welling (with Claude) | Shared code as libraries in their own build `lib/`, shells in `app/` (ADR-0009): drivers, dependency rule, module structure with build column and iOS simulator target, `ios-umbrella`, contract suites, `lib.yml`/`app.yml`, TDS-R-12 |
 
 Related: [02 Requirements](02-requirements.md), [03 FDS](03-fds.md),
 [04 GUI design](04-gui-design.md), [06 Test plan](06-test-plan.md),
@@ -44,6 +45,7 @@ blueprint for phase 2 and 3 of the implementation plan.
 | No proprietary SDK in the core | REQ-C-003 | GMS only in the `play` variants, under additional permission (a); no ad, analytics or tracking SDK in any variant |
 | Free edition with ads, Paid edition without ads and with Android Auto, otherwise identical | REQ-F-150…162 | Edition as build-time constant; ads behind the `AdProvider` port in module `ads`; car service in the `paid` source set only (TDS-9.5, [ADR-0007](adr/ADR-0007-editions-and-monetisation.md)) |
 | Cost awareness and voluntary support without tracking | REQ-F-163…167, REQ-C-011 | Signed funding file with the sponsor-catalogue verifier; module `support` with store billing only in the `play` variants (TDS-9.6, [ADR-0008](adr/ADR-0008-cost-awareness-and-support.md)) |
+| Shared parts developed and tested as libraries, reused by every shell | REQ-NF-045 | Libraries in a Gradle build of their own (`lib/`), shells in `app/` joined as a composite build; contract test suites per port ([ADR-0009](adr/ADR-0009-shared-libraries.md)) |
 
 ### 1.3 Decisions
 
@@ -57,6 +59,7 @@ blueprint for phase 2 and 3 of the implementation plan.
 | [ADR-0006](adr/ADR-0006-mqtt-client.md) | MQTT port with HiveMQ MQTT Client as JVM/Android implementation |
 | [ADR-0007](adr/ADR-0007-editions-and-monetisation.md) | Free (ads) and Paid (no ads, Android Auto) editions; sponsor catalogue as the only ad source; licence route L-A with a GPLv3 §7 additional permission |
 | [ADR-0008](adr/ADR-0008-cost-awareness-and-support.md) | Cost page, *Why this update* release notes, yearly thank-you card, voluntary support (store billing or GitHub Sponsors), Paid price €6, no commercial services |
+| [ADR-0009](adr/ADR-0009-shared-libraries.md) | Shared code as libraries in the Gradle build `lib/`, tested on every target; the shells in `app/` include it as a composite build; one XCFramework for a SwiftUI iOS shell |
 
 ## 2. Architecture overview
 
@@ -103,6 +106,12 @@ Kotlin standard library, `kotlinx.coroutines`, `kotlinx.serialization`,
 core's ports. Shells wire everything together (dependency injection) and own
 the platform lifecycle.
 
+Build rule ([ADR-0009](adr/ADR-0009-shared-libraries.md)): `core`, the
+infrastructure modules, `ui`, `ads`, `support` and `testing` are libraries
+in the Gradle build `lib/`; the shells form the build `app/`, which includes
+`lib/` as a composite build. `app/` depends on `lib/`, never the reverse, so
+every library builds and is tested without any shell.
+
 ### 2.2 Runtime views
 
 **Android phone.** One process. `MainActivity` hosts the Compose UI.
@@ -142,29 +151,42 @@ long as the process. Optional embedded status HTTP server.
 
 ## 3. Module structure (TDS-3)
 
-| Module (TDS id) | Type | Targets | Contents |
-|---|---|---|---|
-| `core` (TDS-3.1) | KMP library | android, jvm, iosArm64 (compile) | Domain, ports, use cases, adapters, rules, statistics, exporters (CSV/GeoJSON), replay format |
-| `data` (TDS-3.2) | KMP library | android, jvm, iosArm64 | SQLDelight schema and repositories, settings, secret store expect/actual |
-| `net` (TDS-3.3) | KMP library | android, jvm, iosArm64 (HTTP only) | MQTT port implementation (HiveMQ on JVM/Android), Ktor HTTP client, TLS helpers, connectivity monitor |
-| `map` (TDS-3.4) | KMP library | android, jvm, iosArm64 | Map model, projection, tile source/cache, renderer, `DrawTarget` implementations (Compose, Android Canvas) |
-| `ui` (TDS-3.5) | Compose Multiplatform library | android, jvm, iosArm64 | Screens, view models, theme, navigation, resources (strings), on-screen keyboard |
-| `android` (TDS-3.6) | Android application | android | `Application`, `MainActivity`, `MappingService`, notifications, permissions, position sources, Car App service and screens (`paid` source set only), build variants `free`/`paid` × `foss`/`play` (TDS-9.5) |
-| `desktop` (TDS-3.7) | JVM application | jvm | `main()`, window/kiosk, config file, gpsd/NMEA sources, systemd unit, packaging, status server |
-| `tools/replay` (TDS-3.8) | JVM application | jvm | Record, publish, track modes |
-| `testing` (TDS-3.9) | KMP library (test fixtures) | all | Fixture messages, fake ports, golden files |
-| `ads` (TDS-3.10) | KMP library | android, jvm, iosArm64 | `AdProvider` port, `AdPolicy`, `NoAdProvider`, `SponsorAdProvider` (TDS-9.5) |
-| `support` (TDS-3.11) | KMP library | android, jvm, iosArm64 | `FundingRepository`, `StartScreenPolicy`, `YearlyCardPolicy`, `SupportPort`; providers: Play Billing (Android `play` variants), external link (`foss`, desktop), StoreKit (iOS later) (TDS-9.6) |
+Two Gradle builds (ADR-0009): **`lib/`** holds the libraries — modules
+TDS-3.1…3.5 and 3.9…3.12 — and **`app/`** holds the shells TDS-3.6…3.8.
+Every library builds for `jvm` (Linux desktop and Pi), `android`,
+`iosArm64` and `iosSimulatorArm64`. Apple targets build on macOS hosts only;
+the Android target is enabled where an Android SDK is configured. CI has
+both, so every pull request covers every target.
+
+| Module (TDS id) | Build | Type | Targets | Contents |
+|---|---|---|---|---|
+| `core` (TDS-3.1) | lib | KMP library | android, jvm, iOS | Domain, ports, use cases, adapters, rules, statistics, exporters (CSV/GeoJSON), replay format |
+| `data` (TDS-3.2) | lib | KMP library | android, jvm, iOS | SQLDelight schema and repositories, settings, secret store expect/actual |
+| `net` (TDS-3.3) | lib | KMP library | android, jvm, iOS (HTTP only until WP-4.1) | MQTT port implementation (HiveMQ on JVM/Android), Ktor HTTP client, TLS helpers, connectivity monitor |
+| `map` (TDS-3.4) | lib | KMP library | android, jvm, iOS | Map model, projection, tile source/cache, renderer, `DrawTarget` implementations (Compose, Android Canvas) |
+| `ui` (TDS-3.5) | lib | Compose Multiplatform library | android, jvm, iOS | Screens, view models, theme, navigation, resources (strings), on-screen keyboard |
+| `android` (TDS-3.6) | app | Android application | android | `Application`, `MainActivity`, `MappingService`, notifications, permissions, position sources, Car App service and screens (`paid` source set only), build variants `free`/`paid` × `foss`/`play` (TDS-9.5) |
+| `desktop` (TDS-3.7) | app | JVM application | jvm | `main()`, window/kiosk, config file, gpsd/NMEA sources, systemd unit, packaging, status server |
+| `tools/replay` (TDS-3.8) | app | JVM application | jvm | Record, publish, track modes |
+| `testing` (TDS-3.9) | lib | KMP library (test fixtures) | all | Fixture messages, fake ports, golden files, contract test suites per port (ADR-0009 D5) |
+| `ads` (TDS-3.10) | lib | KMP library | android, jvm, iOS | `AdProvider` port, `AdPolicy`, `NoAdProvider`, `SponsorAdProvider` (TDS-9.5) |
+| `support` (TDS-3.11) | lib | KMP library | android, jvm, iOS | `FundingRepository`, `StartScreenPolicy`, `YearlyCardPolicy`, `SupportPort`; providers: Play Billing (Android `play` variants), external link (`foss`, desktop), StoreKit (iOS later) (TDS-9.6) |
+| `ios-umbrella` (TDS-3.12) | lib | KMP library (framework export) | iOS | Phase 4, only for a SwiftUI shell: exports the libraries as one XCFramework (one Kotlin runtime, shared types) for Swift Package Manager (ADR-0009 D7) |
 
 Package root: `nl.pe1mew.thingsmapper` (confirmed by the maintainer on
 2026-10-24, TDS-OP-1 closed). Android `applicationId` = package root for the Free
 edition and package root + `.paid` for the Paid edition (TDS-9.5); desktop
 package name `thingsmapper`.
 
-Gradle: Kotlin DSL, version catalogue (`gradle/libs.versions.toml`),
-convention plugins in `build-logic/` for the KMP library, Compose library
-and application modules; `kotlin { compilerOptions { allWarningsAsErrors } }`
-for `core`; explicit API mode for `core`, `data`, `net`, `map`.
+Gradle: Kotlin DSL; one wrapper, one version catalogue
+(`gradle/libs.versions.toml`) and the convention plugins in `build-logic/`
+(KMP library, Compose library, application) at the repository root, shared
+by `lib/` and `app/`; the root settings file includes both builds for the
+IDE. `app/` includes `lib/` with `includeBuild("../lib")` and depends on the
+coordinates `nl.pe1mew.thingsmapper:<library>`, which Gradle substitutes with
+the library projects. `kotlin { compilerOptions { allWarningsAsErrors } }`
+for `core`; explicit API mode for `core`, `data`, `net`, `map`; a checked-in
+ABI dump per library, compared in CI.
 
 ## 4. Core (TDS-4)
 
@@ -756,8 +778,8 @@ SemVer for the software (`MAJOR.MINOR.PATCH`), Android `versionCode` =
 |---|---|
 | Toolchain | JDK 21 (Temurin), Kotlin and Compose Multiplatform latest stable at WP-2.1, AGP matching; Gradle wrapper with configuration cache |
 | Static analysis | `ktlint` (Gradle plugin), `detekt` with the project rule set, Android Lint (`warningsAsErrors` for `HardcodedText`, `MissingPermission`, `UnusedResources`), a custom detekt rule forbidding `println`/`Log` outside the logging sink |
-| Tests | `core`/`map`/`data` unit tests on JVM (`kotlin.test`, Turbine for flows, `kotest-assertions`), SQLDelight verification, Android instrumentation for the service and secret store, Compose UI tests (desktop runner), integration tests with a Mosquitto container (Testcontainers) driven by the replay tool, screenshot tests for the wireframe screens |
-| CI (GitHub Actions) | `pr.yml`: lint + tests on `ubuntu-latest`; `android.yml`: assemble the `freeFoss` and `paidFoss` debug APKs, run instrumentation for both editions on an emulator (API 30, 34), check merged manifests (no `AD_ID` and no ad classes in `paid*`, no `CarAppService` in `free*`); `desktop.yml`: `packageDeb` in a `debian:12` container on `ubuntu-24.04` (x86_64) and `ubuntu-24.04-arm` (aarch64) runners (TDS-9.3), then the install test in clean containers — x86_64: `debian:12`, `debian:13`, `ubuntu:22.04` and the newest Ubuntu LTS (TC-PK-01); arm64: `debian:12` and `debian:13`, the bases of Raspberry Pi OS Bookworm and Trixie (TC-PK-02); `ios-compile.yml` (optional macOS job): `compileKotlinIosArm64` for `core`, `data`, `net`, `map` |
+| Tests | Library tests in `commonTest`, run on every target — JVM, Android host and iOS simulator (`kotlin.test`, Turbine for flows, `kotest-assertions`); contract suites from `testing` run by every implementation of a port (ADR-0009 D5); SQLDelight verification, Android instrumentation for the service and secret store, Compose UI tests (desktop runner), integration tests with a Mosquitto container (Testcontainers) driven by the replay tool, screenshot tests for the wireframe screens |
+| CI (GitHub Actions) | `lib.yml` (ADR-0009 D6): ktlint, detekt, ABI check, coverage gate, JVM and Android host tests of the libraries on `ubuntu-latest`, iOS simulator tests on `macos-latest`; `app.yml`: lint and tests of the shells against the library source on `ubuntu-latest`; `android.yml`: assemble the `freeFoss` and `paidFoss` debug APKs, run instrumentation for both editions on an emulator (API 30, 34), check merged manifests (no `AD_ID` and no ad classes in `paid*`, no `CarAppService` in `free*`); `desktop.yml`: `packageDeb` in a `debian:12` container on `ubuntu-24.04` (x86_64) and `ubuntu-24.04-arm` (aarch64) runners (TDS-9.3), then the install test in clean containers — x86_64: `debian:12`, `debian:13`, `ubuntu:22.04` and the newest Ubuntu LTS (TC-PK-01); arm64: `debian:12` and `debian:13`, the bases of Raspberry Pi OS Bookworm and Trixie (TC-PK-02) |
 | Release | Tag → `release.yml` builds signed APK/AAB (`freePlay` and `paidPlay` AABs for the two Play listings, `freeFoss` APK for GitHub/F-Droid per OP-9) with signing material from repository secrets, `.deb` x86_64 and arm64, `SHA256SUMS`, licence report (`licensee`), CycloneDX SBOM; changelog section becomes the release notes, which must contain a *Why this update* line (store changelog files in fastlane format per `versionCode`, also read by F-Droid; CI fails without it) |
 | Distribution | GitHub Releases (desktop/Pi `.deb`; Android `freeFoss` per OP-9), Google Play Free and Paid listings (internal → closed → production tracks), F-Droid (reproducible `freeFoss` build, later, OP-9), App Store Free and Paid (phase 4), `.deb` repository (later) |
 
@@ -821,6 +843,7 @@ exact versions.
 | TDS-OP-4 | Confirm Paid application id suffix `.paid` and edition names (OP-10) | Maintainer, WP-2.16 |
 | TDS-R-10 | Package dependency names differ between distribution releases (64-bit `time_t` renames such as `libasound2t64`): a `.deb` built on a newer release does not install on an older one | Build in a container of the oldest supported release (TDS-9.3); install test on every supported release (TC-PK-01/02) |
 | TDS-R-11 | The kiosk unit starts without the display environment (started at login instead of by the session) and fails or loops | Unit not enabled for `default.target`; started from the compositor autostart after `import-environment`; start limit; boot test TC-KI-08 |
+| TDS-R-12 | Composite-build configuration (two builds, shared `build-logic/` and catalogue) confuses tooling, or a library change breaks a shell | Root settings includes both builds so the IDE sees one project; `app.yml` runs on every pull request, so breakage shows in the same pull request; iOS job moves to nightly if the repository becomes private (macOS minutes) |
 
 ## 15. Traceability (requirements → design)
 
@@ -848,7 +871,7 @@ exact versions.
 | REQ-NF-010…013 | TDS-5.2, TDS-2.3, TDS-9.3 supervision, TDS-5.1 migrations |
 | REQ-NF-020…024 | TDS-5.4, TDS-6.1, 6.2, TDS-10.2, 10.4, TDS-11 |
 | REQ-NF-030…034 | TDS-8 |
-| REQ-NF-040…044 | TDS-2.1, TDS-3, TDS-11 |
+| REQ-NF-040…045 | TDS-2.1, TDS-3, TDS-11, ADR-0009 |
 | REQ-NF-050 | TDS-4.3 `Diagnostics`, TDS-10.2 |
 | REQ-NF-060…062 | TDS-9.1 permissions, TDS-7.2, TDS-8 privacy page |
 | REQ-C-001…011 | TDS-12, TDS-9.1 build variants, TDS-9.5, TDS-9.6, TDS-11, TDS-7.2 |
