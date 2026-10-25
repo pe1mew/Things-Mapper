@@ -194,7 +194,7 @@ provisioning.
 |---|---|---|---|
 | REQ-F-040 | Signal **level** and the colour scale shall be identical to TTN Mapper's: level = RSSI + min(SNR, 0); > −100 dBm red, > −105 orange, > −110 yellow, > −115 green, > −120 cyan, > −140 blue, otherwise/unknown black. | M | EVAL-17 |
 | REQ-F-041 | A measurement's colour is the best level over its receptions; PB-only measurements are drawn as rings. | M | EVAL-17 |
-| REQ-F-042 | Gateway locations shall be validated (null island `|lat| < 1 ∧ |lon| < 1`, `|lat| > 90`, `|lon| > 180`); invalid locations produce no marker and no line but are kept in the data. | M | EVAL-17 |
+| REQ-F-042 | Gateway locations shall be validated (null island `\|lat\| < 1 ∧ \|lon\| < 1`, `\|lat\| > 90`, `\|lon\| > 180`); invalid locations produce no marker and no line but are kept in the data. | M | EVAL-17 |
 | REQ-F-043 | The system shall maintain a **gateway registry** (per session and overall): id, EUI, network id, location and source, description, first/last seen, reception count, best level. | M | EVAL-22 |
 | REQ-F-044 | Every successfully parsed uplink shall be stored, with or without position (flagged). | M | EVAL-17 |
 | REQ-F-045 | Processing shall be **ordered and lossless**: messages are processed in arrival order through a bounded queue; bursts of at least 10 messages/s for 60 s shall not lose messages; queue depth is a diagnostic metric. | M | EVAL-04 |

@@ -91,3 +91,9 @@ software. Design documents carry their own revision table in their header.
 - Licence set to GNU GPL v3.0 (`GPL-3.0-only`), inherited from the original
   TTN Mapper Android app of which this project is a derived work (was MIT in
   the copied scaffold).
+
+**Fixed**
+- Three table rows that broke on GitHub, where an unescaped `|` inside a
+  code span split the cell: EVAL-17 (01), REQ-F-042 (02) and the Android
+  Auto manifest row of TDS-9.2 (05). The pipes are now escaped as `\|`;
+  the content is unchanged.
